@@ -1,0 +1,32 @@
+# Next.js specific files and directories
+.next/
+out/
+.env.local
+.env.*.local
+.vercel/
+.nextjs/
+
+# Node modules
+node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Build artifacts
+dist/
+build/
+
+# Editor/OS specific files
+.DS_Store
+Thumbs.db
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Dependency lock files (optional, depending on your preference)
+# yarn.lock
+# package-lock.json
+# pnpm-lock.yaml
