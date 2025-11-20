@@ -1,3 +1,6 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,123 +12,90 @@ datasource db {
 
 model User {
   id            String    @id @default(cuid())
-  email         String    @unique
   name          String?
-  role          Role      @default(USER)
-  phone         String?
-  avatar        String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  role          Role      @default(CITIZEN)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  
-  // Relations
-  reports       Report[]
-  assignedReports Report[] @relation("AssignedReports")
-  comments      Comment[]
-  
-  @@map("users")
+  issues        Issue[]
+  accounts      Account[]
+  sessions      Session[]
 }
 
-model Report {
-  id            String   @id @default(cuid())
-  title         String
-  description   String
-  category      Category
-  latitude      Float
-  longitude     Float
-  address       String?
-  imageUrl      String?
-  status        Status   @default(PENDING)
-  priority      Priority @default(MEDIUM)
-  urgency       Int      @default(3) // 1-5 scale
-  
-  // Relations
-  userId        String   @map("user_id")
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  departmentId  String?  @map("department_id")
-  department    Department? @relation(fields: [departmentId], references: [id])
-  assignedToId  String?  @map("assigned_to_id")
-  assignedTo    User?    @relation("AssignedReports", fields: [assignedToId], references: [id])
-  comments      Comment[]
-  
-  // Timestamps
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  acknowledgedAt DateTime?
-  inProgressAt  DateTime?
-  resolvedAt    DateTime?
-  
-  // Escalation tracking
-  escalationLevel Int @default(0) // 0 = ward, 1 = department, 2 = municipal
-  lastEscalatedAt DateTime?
-  
-  @@index([status, category])
-  @@index([latitude, longitude])
-  @@index([createdAt])
-  @@map("reports")
+model Issue {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  status      Status   @default(SUBMITTED)
+  category    Category @relation(fields: [categoryId], references: [id])
+  categoryId  String
+  latitude    Float
+  longitude   Float
+  address     String?
+  imageUrl    String?
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
-model Department {
+model Category {
   id          String   @id @default(cuid())
   name        String   @unique
-  email       String
   description String?
-  hierarchyLevel Int @default(0) // 0 = ward, 1 = department, 2 = municipal
-  isActive    Boolean  @default(true)
-  
-  // Relations
-  reports     Report[]
-  
-  @@map("departments")
-}
-
-model Comment {
-  id        String   @id @default(cuid())
-  content   String
-  isPublic  Boolean  @default(true) // If false, it's an internal note
-  reportId  String   @map("report_id")
-  report    Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
-  authorId  String   @map("author_id")
-  author    User     @relation(fields: [authorId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  @@index([reportId])
-  @@index([createdAt])
-  @@map("comments")
+  issues      Issue[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 enum Role {
-  USER
-  WARD_OFFICER
-  DEPARTMENT_HEAD
+  CITIZEN
   ADMIN
+  STAFF
 }
 
 enum Status {
-  PENDING
+  SUBMITTED
   ACKNOWLEDGED
   IN_PROGRESS
   RESOLVED
-  REJECTED
-  ESCALATED
+  CLOSED
 }
 
-enum Priority {
-  LOW
-  MEDIUM
-  HIGH
-  CRITICAL
+// NextAuth Models
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?  @db.Text
+  access_token       String?  @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?  @db.Text
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
 }
 
-enum Category {
-  SANITATION
-  ROADS_AND_SIDEWALKS
-  STREETLIGHTS
-  PARKS_AND_RECREATION
-  WATER_AND_SEWAGE
-  TRAFFIC_SIGNALS
-  GRAFFITI
-  NOISE_POLLUTION
-  ILLEGAL_PARKING
-  OTHER
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }

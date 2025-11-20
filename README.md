@@ -1,64 +1,36 @@
-# CivicConnect
-CivicConnect is a full-stack, mobile-first web application using Next.js that serves as a bridge between citizens and local government authorities. This platform empowers the public to report civic issues (e.g., potholes, non-functional streetlights, overflowing trash bins), and provide a robust dashboard for municipal staff to manage, track, and resolve these issues efficiently.
-## Tech Stack
-- **Framework:** Next.js 14+ (App Router)
-- **Language:** TypeScript
-- **Database:** PostgreSQL
-- **ORM:** Prisma
-- **Authentication:** NextAuth.js
-- **Styling:** Tailwind CSS
-- **UI Components:** shadcn/ui
-- **State Management:** Zustand
-- **File Storage:** Cloudinary / AWS S3
-- **Mapping:** Leaflet.js
-- **Deployment:** Vercel
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
 ## Getting Started
-### Prerequisites
-- Node.js (v18 or higher)
-- pnpm
-- PostgreSQL database
-### Installation
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/your-username/civicconnect.git
-   cd civicconnect
-   ```
-2. **Install dependencies:**
-   ```bash
-   pnpm install
-   ```
-3. **Set up environment variables:**
-   Create a `.env` file in the root of the project and add the following variables:
-   ```env
-   DATABASE_URL="postgresql://username:password@localhost:5432/civicconnect?schema=public"
-   NEXTAUTH_URL="http://localhost:3000"
-   NEXTAUTH_SECRET="your-secret-key-here"
-   GOOGLE_CLIENT_ID="your-google-client-id"
-   GOOGLE_CLIENT_SECRET="your-google-client-secret"
-   ```
-4. **Push the database schema:**
-   ```bash
-   pnpm prisma db push
-   ```
-5. **Run the development server:**
-   ```bash
-   pnpm dev
-   ```
+
+First, run the development server:
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
+
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-## Project Structure
-```
-civic-connect/
-├── app/                  # App Router pages
-│   ├── (citizen)/        # User routes: /, /report, /my-reports
-│   ├── (admin)/          # Auth-guarded: /admin/dashboard, /admin/reports/[id]
-│   ├── api/              # API routes: /api/reports, /api/route-report
-│   ├── globals.css
-│   └── layout.tsx
-├── components/           # Reusable: MapView, ReportForm, NotificationBell
-├── lib/                  # Utils: prisma.ts, auth.ts, routingEngine.ts
-├── public/               # Static assets
-├── prisma/               # Schema & migrations
-└── package.json          # Dependencies: next, react, prisma, leaflet, recharts, etc.
-```
-## License
-This project is licensed under the MIT License.
+
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
