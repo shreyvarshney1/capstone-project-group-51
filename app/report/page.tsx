@@ -1,6 +1,15 @@
+import { getServerSession } from "next-auth"
+import { redirect } from "next/navigation"
+import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import { IssueForm } from "@/components/issue-form"
 
-export default function ReportPage() {
+export default async function ReportPage() {
+  const session = await getServerSession(authOptions)
+
+  if (!session || !session.user) {
+    redirect("/api/auth/signin")
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
       <div className="container mx-auto py-10 px-4">
