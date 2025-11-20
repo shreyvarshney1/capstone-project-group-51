@@ -1,5 +1,6 @@
 import DynamicMap from "@/components/dynamic-map"
 import { prisma } from "@/lib/prisma"
+import { Issue, Category } from "@prisma/client"
 
 export const revalidate = 0 // Disable cache for now
 
@@ -10,7 +11,7 @@ export default async function MapPage() {
     },
   })
 
-  const serializedIssues = issues.map((issue: any) => ({
+  const serializedIssues = issues.map((issue: Issue & { category: Category }) => ({
     ...issue,
     createdAt: issue.createdAt.toISOString(),
     updatedAt: issue.updatedAt.toISOString(),

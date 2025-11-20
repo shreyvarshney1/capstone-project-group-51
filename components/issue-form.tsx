@@ -36,7 +36,7 @@ export function IssueForm() {
       try {
         const response = await fetch("/api/categories")
         if (response.ok) {
-          const data = await response.json()
+          const data = await response.json() as { id: string; name: string }[]
           setCategories(data)
         }
       } catch (error) {
@@ -203,7 +203,7 @@ export function IssueForm() {
             />
           </div>
           <p className="text-xs text-muted-foreground mt-2">
-            💡 Tip: Use your device's GPS or select a location on the map for accurate coordinates.
+            💡 Tip: Use your device&apos;s GPS or select a location on the map for accurate coordinates.
           </p>
         </div>
 

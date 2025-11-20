@@ -7,7 +7,7 @@ import { AdminDashboard } from "@/components/admin-dashboard"
 export default async function AdminPage() {
   const session = await getServerSession(authOptions)
 
-  if (!session || !session.user || (session.user as any).role !== "ADMIN") {
+  if (!session || !session.user || session.user.role !== "ADMIN") {
     redirect("/")
   }
 

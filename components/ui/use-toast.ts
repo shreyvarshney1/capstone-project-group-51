@@ -1,5 +1,3 @@
-import { useState, useEffect } from "react"
-
 type ToastProps = {
   title?: string
   description?: string
@@ -7,7 +5,6 @@ type ToastProps = {
 }
 
 export function useToast() {
-  const [toasts, setToasts] = useState<ToastProps[]>([])
 
   const toast = ({ title, description, variant }: ToastProps) => {
     // Simple console log for now as full toast implementation is complex

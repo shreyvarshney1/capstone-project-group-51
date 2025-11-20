@@ -15,7 +15,6 @@ export const authOptions: NextAuthOptions = {
     session: async ({ session, user }) => {
       if (session?.user) {
         session.user.id = user.id;
-        // @ts-ignore
         session.user.role = user.role;
       }
       return session;
