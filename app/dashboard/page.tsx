@@ -69,7 +69,7 @@ export default async function DashboardPage() {
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {issues.map((issue) => (
+            {issues.map((issue: typeof issues[number]) => (
               <Card key={issue.id} className="group hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] bg-white dark:bg-gray-950 border-2">
                 <CardHeader className="pb-3">
                   <div className="flex justify-between items-start mb-2">
