@@ -20,13 +20,24 @@ import {
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 
+import { useAuthStore } from '@/lib/stores/auth-store';
+import { useRouter } from 'next/navigation';
+
 export default function LandingPage() {
+  const router = useRouter();
+  const { isAuthenticated } = useAuthStore();
   const [stats, setStats] = useState({
     totalComplaints: 0,
     resolvedComplaints: 0,
     activeUsers: 0,
     avgResolutionTime: 0,
   });
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/dashboard');
+    }
+  }, [isAuthenticated, router]);
 
   useEffect(() => {
     // Animate counters

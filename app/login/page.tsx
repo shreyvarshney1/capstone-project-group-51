@@ -42,21 +42,22 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // Use NextAuth credentials provider
-      const result = await signIn('credentials', {
-        redirect: false,
+      const response = await api.post(API_ENDPOINTS.AUTH.LOGIN, {
         email: data.email,
         password: data.password,
-      });
+      }) as any;
 
-      if (result?.error) {
-        toast.error('Invalid credentials. Please try again.');
-      } else {
+      if (response.success) {
+        const { user, access_token, refresh_token } = response.data;
+        setAuth(user, access_token, refresh_token);
+        
         toast.success('Login successful! Redirecting...');
         router.push('/dashboard');
+      } else {
+        toast.error(response.error?.message || 'Invalid credentials. Please try again.');
       }
     } catch (error: any) {
-      toast.error('Login failed. Please try again.');
+      toast.error(error.response?.data?.error?.message || 'Login failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
