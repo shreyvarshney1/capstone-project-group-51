@@ -1,18 +1,19 @@
 import { withAuth } from "next-auth/middleware"
+import { getToken } from "next-auth/jwt"
 import { NextResponse } from "next/server"
 
 export default withAuth(
-  function middleware(req) {
-    const token = req.nextauth.token
-    const isAuth = !!token
+  async function middleware(req) {
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    const isAuth = !!token;
     const isAuthPage = req.nextUrl.pathname.startsWith('/login') || 
-                       req.nextUrl.pathname.startsWith('/register')
+                       req.nextUrl.pathname.startsWith('/register');
 
     if (isAuthPage) {
       if (isAuth) {
-        return NextResponse.redirect(new URL('/dashboard', req.url))
+        return NextResponse.redirect(new URL('/dashboard', req.url));
       }
-      return null
+      return null;
     }
 
     if (!isAuth) {
@@ -26,11 +27,11 @@ export default withAuth(
       );
     }
 
-    return null
+    return null;
   },
   {
     callbacks: {
-      authorized: ({ token }) => true, // Let the middleware function handle the logic
+      authorized: ({ token }) => true,
     },
   }
 )
