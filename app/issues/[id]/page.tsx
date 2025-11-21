@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import { prisma } from "@/lib/prisma"
+import { getIssueById } from "@/lib/data"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -18,19 +18,7 @@ export default async function IssuePage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const issue = await prisma.issue.findUnique({
-    where: {
-      id,
-    },
-    include: {
-      category: true,
-      user: {
-        select: {
-          name: true,
-        },
-      },
-    },
-  })
+  const issue = getIssueById(id)
 
   if (!issue) {
     notFound()

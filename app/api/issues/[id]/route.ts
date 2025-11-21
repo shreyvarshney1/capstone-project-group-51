@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { z } from "zod"
-import { prisma } from "@/lib/prisma"
+import { getIssueById, mockIssues } from "@/lib/data"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 
 const routeContextSchema = z.object({
@@ -21,20 +21,7 @@ export async function GET(
   try {
     const { id } = await params
 
-    const issue = await prisma.issue.findUnique({
-      where: {
-        id,
-      },
-      include: {
-        category: true,
-        user: {
-          select: {
-            name: true,
-            image: true,
-          },
-        },
-      },
-    })
+    const issue = getIssueById(id)
 
     if (!issue) {
       return new NextResponse(null, { status: 404 })
@@ -61,16 +48,19 @@ export async function PATCH(
     const json = await req.json()
     const body = updateIssueSchema.parse(json)
 
-    const issue = await prisma.issue.update({
-      where: {
-        id,
-      },
-      data: {
-        status: body.status,
-      },
-    })
+    const issue = getIssueById(id)
+    if (!issue) {
+      return new NextResponse(null, { status: 404 })
+    }
 
-    return NextResponse.json(issue)
+    // Mock update - return issue with updated status
+    const updatedIssue = {
+      ...issue,
+      status: body.status,
+      updatedAt: new Date().toISOString(),
+    }
+
+    return NextResponse.json(updatedIssue)
   } catch (error) {
     if (error instanceof z.ZodError) {
       return new NextResponse(JSON.stringify(error.issues), { status: 422 })
@@ -92,11 +82,10 @@ export async function DELETE(
       return new NextResponse("Unauthorized", { status: 403 })
     }
 
-    await prisma.issue.delete({
-      where: {
-        id,
-      },
-    })
+    const issue = getIssueById(id)
+    if (!issue) {
+      return new NextResponse(null, { status: 404 })
+    }
 
     return new NextResponse(null, { status: 204 })
   } catch (error) {

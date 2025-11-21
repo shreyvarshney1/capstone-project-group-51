@@ -1,25 +1,10 @@
 import DynamicMap from "@/components/dynamic-map"
-import { prisma } from "@/lib/prisma"
+import { getIssuesWithCategories } from "@/lib/data"
 
 export const revalidate = 0 // Disable cache for now
 
 export default async function MapPage() {
-  const issues = await prisma.issue.findMany({
-    include: {
-      category: true,
-    },
-  })
-
-  const serializedIssues = issues.map((issue: typeof issues[number]) => ({
-    ...issue,
-    createdAt: issue.createdAt.toISOString(),
-    updatedAt: issue.updatedAt.toISOString(),
-    category: {
-      ...issue.category,
-      createdAt: issue.category.createdAt.toISOString(),
-      updatedAt: issue.category.updatedAt.toISOString(),
-    }
-  }))
+  const serializedIssues = getIssuesWithCategories()
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
