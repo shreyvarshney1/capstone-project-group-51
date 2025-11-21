@@ -25,7 +25,7 @@ import { useRouter } from 'next/navigation';
 
 export default function LandingPage() {
   const router = useRouter();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, isLoading } = useAuthStore();
   const [stats, setStats] = useState({
     totalComplaints: 0,
     resolvedComplaints: 0,
@@ -34,10 +34,10 @@ export default function LandingPage() {
   });
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (!isLoading && isAuthenticated) {
       router.push('/dashboard');
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, isLoading, router]);
 
   useEffect(() => {
     // Animate counters

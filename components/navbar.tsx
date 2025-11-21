@@ -39,7 +39,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { t, i18n } = useTranslation();
-  const { user, isAuthenticated, clearAuth } = useAuthStore();
+  const { user, isAuthenticated, clearAuth, isLoading } = useAuthStore();
   const { unreadCount } = useNotificationStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
@@ -84,6 +84,7 @@ export default function Navbar() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-1">
             {navigation.map((item) => {
+              if (isLoading) return null;
               if (item.auth && !isAuthenticated) return null;
 
               const isActive = pathname === item.href;
@@ -136,7 +137,9 @@ export default function Navbar() {
               )}
             </Button>
 
-            {isAuthenticated ? (
+            {isLoading ? (
+              <div className="h-8 w-8 animate-pulse bg-gray-200 rounded-full" />
+            ) : isAuthenticated ? (
               <>
                 {/* Notifications */}
                 <Button

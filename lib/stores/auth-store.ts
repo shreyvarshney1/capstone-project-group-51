@@ -78,6 +78,9 @@ export const useAuthStore = create<AuthState>()(
                 refreshToken: state.refreshToken,
                 isAuthenticated: state.isAuthenticated,
             }),
+            onRehydrateStorage: () => (state) => {
+                state?.setLoading(false);
+            },
         }
     )
 );
