@@ -61,7 +61,7 @@ export default function RegisterPage() {
                     city: data.city,
                     state: data.state,
                 },
-            });
+            }) as any;
 
             if (response.success) {
                 const { user, access_token, refresh_token } = response.data;

@@ -68,7 +68,7 @@ export default function ProfilePage() {
                     theme: formData.theme,
                     notifications: formData.notifications,
                 },
-            });
+            }) as any;
 
             if (response.success) {
                 updateUser(response.data);
@@ -93,7 +93,7 @@ export default function ProfilePage() {
 
             const response = await api.post(API_ENDPOINTS.FILES.UPLOAD, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
-            });
+            }) as any;
 
             if (response.success) {
                 updateUser({ avatar: response.data.url });

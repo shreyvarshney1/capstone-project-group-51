@@ -36,19 +36,6 @@ export default async function IssuePage({
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 md:p-8 text-white">
             <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
               <div className="flex-1 min-w-0">
-                <h1 className="text-2xl md:text-3xl font-bold mb-2">{issue.title}</h1>
-                <div className="flex flex-wrap items-center gap-3 text-sm text-gray-200">
-                  <span className="flex items-center gap-1">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                    </svg>
-                    {issue.user.name || "Anonymous"}
-                  </span>
-                  <span>•</span>
-                  <span>{issue.createdAt.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</span>
-                </div>
-              </div>
-              <div className="flex gap-2 flex-shrink-0">
                 <Badge variant="outline" className="bg-white/20 border-white/40 text-white text-sm px-3 py-1">
                   {issue.category.name}
                 </Badge>

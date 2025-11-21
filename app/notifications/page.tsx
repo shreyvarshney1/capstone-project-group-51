@@ -38,7 +38,7 @@ export default function NotificationsPage() {
 
     const fetchNotifications = async () => {
         try {
-            const response = await api.get(API_ENDPOINTS.USER.NOTIFICATIONS);
+            const response = await api.get(API_ENDPOINTS.USER.NOTIFICATIONS) as any;
             if (response.success) {
                 setNotifications(response.data.data || response.data);
             }

@@ -184,6 +184,9 @@ export const WS_EVENTS = {
     NEW_COMMENT: 'new_comment',
     NEW_VOTE: 'new_vote',
     STATUS_CHANGE: 'status_change',
+    ASSIGNMENT: 'assignment',
+    ESCALATION: 'escalation',
+    RESOLUTION: 'resolution',
 };
 
 // Chart Colors

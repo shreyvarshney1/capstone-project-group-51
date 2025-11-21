@@ -35,7 +35,7 @@ export default function DashboardPage() {
   const fetchDashboardData = async () => {
     try {
       // Fetch metrics
-      const metricsResponse = await api.get(API_ENDPOINTS.ANALYTICS.DASHBOARD);
+      const metricsResponse = await api.get(API_ENDPOINTS.ANALYTICS.DASHBOARD) as any;
       if (metricsResponse.success) {
         setMetrics(metricsResponse.data);
       }
@@ -43,7 +43,7 @@ export default function DashboardPage() {
       // Fetch user's complaints
       const complaintsResponse = await api.get(API_ENDPOINTS.COMPLAINTS.LIST, {
         params: { user_id: user?.user_id, limit: 10 },
-      });
+      }) as any;
       if (complaintsResponse.success) {
         setComplaints(complaintsResponse.data.data || complaintsResponse.data);
       }

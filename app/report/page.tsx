@@ -44,8 +44,8 @@ const complaintSchema = z.object({
   address_state: z.string().min(1, 'State is required'),
   address_pincode: z.string().regex(/^\d{6}$/, 'Invalid pincode'),
   landmark: z.string().optional(),
-  is_urgent: z.boolean().default(false),
-  is_public: z.boolean().default(true),
+  is_urgent: z.boolean().optional(),
+  is_public: z.boolean().optional(),
 });
 
 type ComplaintFormData = z.infer<typeof complaintSchema>;
@@ -147,7 +147,7 @@ export default function ReportComplaintPage() {
         is_public: data.is_public,
       };
 
-      const response = await api.post(API_ENDPOINTS.COMPLAINTS.CREATE, complaintData);
+      const response = await api.post(API_ENDPOINTS.COMPLAINTS.CREATE, complaintData) as any;
 
       if (response.success) {
         toast.success('Complaint submitted successfully!');
@@ -241,17 +241,6 @@ export default function ReportComplaintPage() {
                     {errors.category && (
                       <p className="text-sm text-red-500 mt-1">{errors.category.message}</p>
                     )}
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      id="is_urgent"
-                      checked={watch('is_urgent')}
-                      onCheckedChange={(checked) => setValue('is_urgent', checked as boolean)}
-                    />
-                    <Label htmlFor="is_urgent" className="cursor-pointer">
-                      Mark as urgent (requires immediate attention)
-                    </Label>
                   </div>
                 </motion.div>
               )}

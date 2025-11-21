@@ -1,6 +1,6 @@
 "use client"
 
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet"
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from "react-leaflet"
 import "leaflet/dist/leaflet.css"
 import L from "leaflet"
 import Link from "next/link"
@@ -36,13 +36,29 @@ interface Issue {
   }
 }
 
-export default function Map({ issues }: { issues: Issue[] }) {
+interface MapProps {
+  issues?: Issue[];
+  center?: { lat: number; lng: number };
+  onLocationSelect?: (lat: number, lng: number) => void;
+}
+
+function LocationSelector({ onSelect }: { onSelect: (lat: number, lng: number) => void }) {
+  useMapEvents({
+    click(e) {
+      onSelect(e.latlng.lat, e.latlng.lng)
+    },
+  })
+  return null
+}
+
+export default function Map({ issues, center: customCenter, onLocationSelect }: MapProps) {
   // Default center (can be adjusted or set to user's location)
   const defaultCenter: [number, number] = [51.505, -0.09] // London default, should be dynamic
 
-  // Calculate center based on issues if available
-  const center: [number, number] =
-    issues.length > 0
+  // Calculate center based on props, issues, or default
+  const center: [number, number] = customCenter
+    ? [customCenter.lat, customCenter.lng]
+    : issues && issues.length > 0
       ? [issues[0].latitude, issues[0].longitude]
       : defaultCenter
 
@@ -58,7 +74,14 @@ export default function Map({ issues }: { issues: Issue[] }) {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        {issues.map((issue) => (
+        
+        {onLocationSelect && <LocationSelector onSelect={onLocationSelect} />}
+        
+        {onLocationSelect && customCenter && (
+          <Marker position={[customCenter.lat, customCenter.lng]} />
+        )}
+
+        {issues?.map((issue) => (
           <Marker
             key={issue.id}
             position={[issue.latitude, issue.longitude]}

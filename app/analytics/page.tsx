@@ -81,7 +81,7 @@ export default function AnalyticsPage() {
 
             const trends = getTimeSeriesData();
             // adapt trend shape if necessary
-            setTrendData(trends.map(t => ({ date: t.date, complaints: t.submitted || t.complaints || 0, resolved: t.resolved || 0, pending: t.inProgress || 0 })) as any);
+            setTrendData(trends.map(t => ({ date: t.date, complaints: t.submitted || 0, resolved: t.resolved || 0, pending: t.inProgress || 0 })) as any);
 
             const officers = getOfficerPerformance(10);
             setOfficerPerformance(officers as any);
@@ -97,7 +97,7 @@ export default function AnalyticsPage() {
             const response = await api.post(API_ENDPOINTS.ANALYTICS.REPORT, {
                 format,
                 time_range: timeRange,
-            });
+            }) as any;
 
             // Handle download
             if (response.success && response.data.download_url) {

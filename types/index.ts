@@ -43,6 +43,12 @@ export interface User {
         };
         theme: 'light' | 'dark' | 'system';
     };
+    metadata?: {
+        total_complaints?: number;
+        resolved_complaints?: number;
+        total_votes?: number;
+        total_comments?: number;
+    };
 }
 
 export interface Location {
@@ -180,7 +186,7 @@ export interface DashboardMetrics {
 }
 
 export interface CategoryStats {
-    category: ComplaintCategory;
+    category: string;
     count: number;
     resolved: number;
     pending: number;
