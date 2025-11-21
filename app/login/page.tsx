@@ -26,7 +26,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
-  const { setAuth } = useAuthStore();
+  // const { setAuth } = useAuthStore(); // Removed as we now sync via providers
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -42,22 +42,20 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await api.post(API_ENDPOINTS.AUTH.LOGIN, {
+      const result = await signIn('credentials', {
+        redirect: false,
         email: data.email,
         password: data.password,
-      }) as any;
+      });
 
-      if (response.success) {
-        const { user, access_token, refresh_token } = response.data;
-        setAuth(user, access_token, refresh_token);
-        
+      if (result?.error) {
+        toast.error('Invalid credentials. Please try again.');
+      } else {
         toast.success('Login successful! Redirecting...');
         router.push('/dashboard');
-      } else {
-        toast.error(response.error?.message || 'Invalid credentials. Please try again.');
       }
-    } catch (error: any) {
-      toast.error(error.response?.data?.error?.message || 'Login failed. Please try again.');
+    } catch (error) {
+      toast.error('Login failed. Please try again.');
     } finally {
       setIsLoading(false);
     }

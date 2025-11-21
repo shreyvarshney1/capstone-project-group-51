@@ -3,14 +3,11 @@ import GoogleProvider from "next-auth/providers/google"
 import CredentialsProvider from "next-auth/providers/credentials"
 
 export const authOptions: NextAuthOptions = {
-  // Temporarily disable adapter to avoid Prisma
-  // adapter: PrismaAdapter(prisma),
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
     }),
-    // Add mock credentials provider for development
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -18,36 +15,67 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        // Mock user for development
-        if (credentials?.email) {
-          return {
-            id: "user_1",
-            name: "Test User",
-            email: credentials.email,
-            role: "CITIZEN",
+        if (!credentials?.email || !credentials?.password) return null;
+        
+        try {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/auth/login`, {
+            method: 'POST',
+            body: JSON.stringify({
+              email: credentials.email,
+              password: credentials.password,
+            }),
+            headers: { "Content-Type": "application/json" }
+          });
+
+          const data = await res.json();
+
+          if (res.ok && data.success) {
+            return {
+              id: data.data.user.id,
+              name: data.data.user.name,
+              email: data.data.user.email,
+              image: data.data.user.avatar,
+              role: data.data.user.role,
+              accessToken: data.data.access_token,
+              refreshToken: data.data.refresh_token,
+            } as any;
           }
+          return null;
+        } catch (e) {
+          console.error("Login error:", e);
+          return null;
         }
-        return null
       }
     }),
   ],
   callbacks: {
-    session: async ({ session, token }) => {
-      if (session?.user) {
-        session.user.id = token.sub || "user_1";
-        session.user.role = (token.role as any) || "CITIZEN";
-      }
-      return session;
-    },
-    jwt: async ({ token, user }) => {
+    async jwt({ token, user, account }) {
       if (user) {
-        token.role = user.role;
+        return {
+          ...token,
+          accessToken: (user as any).accessToken,
+          refreshToken: (user as any).refreshToken,
+          role: (user as any).role,
+          id: user.id,
+        };
       }
       return token;
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.id as string;
+        session.user.role = token.role as any;
+        (session as any).accessToken = token.accessToken;
+        (session as any).refreshToken = token.refreshToken;
+      }
+      return session;
     },
   },
   pages: {
     signIn: '/login',
+  },
+  session: {
+    strategy: "jwt",
   },
 }
 

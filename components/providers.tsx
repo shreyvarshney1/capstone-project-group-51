@@ -5,10 +5,23 @@ import { SessionProvider } from "next-auth/react"
 import { useAuthStore } from "@/lib/stores/auth-store"
 import { useEffect } from "react"
 
+import { useSession } from "next-auth/react"
+
 function AuthHydrator({ children }: { children: React.ReactNode }) {
+  const { data: session, status } = useSession()
+  const { setAuth, clearAuth } = useAuthStore()
+
   useEffect(() => {
-    useAuthStore.persist.rehydrate()
-  }, [])
+    if (status === 'authenticated' && session?.user) {
+      setAuth(
+        session.user as any,
+        (session as any).accessToken || '',
+        (session as any).refreshToken || ''
+      )
+    } else if (status === 'unauthenticated') {
+      clearAuth()
+    }
+  }, [session, status, setAuth, clearAuth])
 
   return <>{children}</>
 }
