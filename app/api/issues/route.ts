@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { z } from "zod"
-import { prisma } from "@/lib/prisma"
+import { getIssuesWithCategories, mockIssues } from "@/lib/data"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import { issueSchema } from "@/lib/validations/issue"
 
@@ -16,18 +16,21 @@ export async function POST(req: Request) {
     const json = await req.json()
     const body = issueSchema.parse(json)
 
-    const issue = await prisma.issue.create({
-      data: {
-        title: body.title,
-        description: body.description,
-        categoryId: body.categoryId,
-        latitude: body.latitude,
-        longitude: body.longitude,
-        address: body.address,
-        imageUrl: body.image,
-        userId: session.user.id,
-      },
-    })
+    // Mock issue creation - just return success
+    const issue = {
+      id: `issue_${Date.now()}`,
+      title: body.title,
+      description: body.description,
+      categoryId: body.categoryId,
+      latitude: body.latitude,
+      longitude: body.longitude,
+      address: body.address,
+      imageUrl: body.image,
+      userId: session.user.id,
+      status: 'SUBMITTED' as const,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
 
     return NextResponse.json(issue)
   } catch (error) {
@@ -41,19 +44,7 @@ export async function POST(req: Request) {
 
 export async function GET(req: Request) {
   try {
-    const issues = await prisma.issue.findMany({
-      include: {
-        category: true,
-        user: {
-          select: {
-            name: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    })
+    const issues = getIssuesWithCategories()
 
     return NextResponse.json(issues)
   } catch (error) {

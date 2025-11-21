@@ -1,24 +1,24 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
+import Navbar from "@/components/navbar";
+import { Toaster } from "sonner";
+import { WebSocketProvider } from "@/lib/hooks/use-websocket";
+import { Providers } from "@/components/providers";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "CivicConnect",
-  description: "Crowdsourced Civic Issue Reporting and Resolution Platform",
+  title: "CivicConnect - Unified Grievance Management Platform",
+  description: "A unified digital platform for hierarchical civil grievance management and community-driven issue resolution in India",
+  keywords: "grievance, complaints, civic issues, India, government, transparency",
+  authors: [{ name: "VIT Bhopal" }],
+  openGraph: {
+    title: "CivicConnect - Unified Grievance Management",
+    description: "Empowering citizens with transparent, efficient grievance resolution",
+    type: "website",
+  },
 };
-
-import { Navbar } from "@/components/navbar";
-import { Providers } from "@/components/providers";
 
 export default function RootLayout({
   children,
@@ -27,12 +27,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={inter.className}>
         <Providers>
-          <Navbar />
-          <main>{children}</main>
+          <WebSocketProvider>
+            <Navbar />
+            <main className="min-h-screen">
+              {children}
+            </main>
+            <Toaster
+              position="top-right"
+              richColors
+              closeButton
+              duration={4000}
+            />
+          </WebSocketProvider>
         </Providers>
       </body>
     </html>

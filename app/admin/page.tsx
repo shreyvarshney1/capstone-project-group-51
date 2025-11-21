@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth"
 import { redirect } from "next/navigation"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
-import { prisma } from "@/lib/prisma"
+import { getIssuesWithCategories } from "@/lib/data"
 import { AdminDashboard } from "@/components/admin-dashboard"
 
 export default async function AdminPage() {
@@ -11,19 +11,7 @@ export default async function AdminPage() {
     redirect("/")
   }
 
-  const issues = await prisma.issue.findMany({
-    include: {
-      category: true,
-      user: {
-        select: {
-          name: true,
-        },
-      },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  })
+  const issues = getIssuesWithCategories()
 
   return (
     <div className="container mx-auto py-10">
