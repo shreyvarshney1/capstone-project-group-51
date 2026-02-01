@@ -205,7 +205,7 @@ export function IssueDetailClient({ issue }: IssueDetailClientProps) {
                   variant="ghost"
                   size="sm"
                   onClick={handleShare}
-                  className="text-muted-foreground hover:bg-muted"
+                  className="text-muted-background hover:bg-muted"
                 >
                   <Share2 className="h-4 w-4" />
                 </Button>

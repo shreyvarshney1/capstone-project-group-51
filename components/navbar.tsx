@@ -23,7 +23,7 @@ export default function Navbar() {
         <div className="flex items-center gap-4">
           <Link
             href={session ? "/dashboard" : "/"}
-            className="text-xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+            className="text-xl font-bold bg-linear-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent"
           >
             CivicConnect
           </Link>
