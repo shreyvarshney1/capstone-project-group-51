@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import Link from "next/link"
 import { useSession, signIn, signOut } from "next-auth/react"
@@ -85,7 +85,55 @@ export function Navbar() {
                   onClick={() => signOut({ callbackUrl: "/" })} 
                   className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
                 >
-                  Log out
+                  <Bell className="h-5 w-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </Button>
+
+                {/* User Menu */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="gap-2 hidden md:flex">
+                      <Avatar className="h-8 w-8">
+                        <img src={user?.avatar || '/default-avatar.png'} alt={user?.name} />
+                      </Avatar>
+                      <span className="font-medium">{user?.name}</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{user?.name}</span>
+                        <span className="text-xs text-gray-500">{user?.email}</span>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => router.push('/profile')}>
+                      <User className="mr-2 h-4 w-4" />
+                      {t('nav.profile')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => router.push('/settings')}>
+                      <Settings className="mr-2 h-4 w-4" />
+                      Settings
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      {t('nav.logout')}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            ) : (
+              <div className="hidden md:flex items-center gap-2">
+                <Button variant="ghost" asChild>
+                  <Link href="/login">{t('auth.login')}</Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/register">{t('auth.register')}</Link>
                 </Button>
               </div>
             </>
@@ -220,5 +268,5 @@ export function Navbar() {
         </div>
       )}
     </nav>
-  )
+  );
 }

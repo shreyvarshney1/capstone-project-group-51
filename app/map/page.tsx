@@ -1,5 +1,5 @@
 import DynamicMap from "@/components/dynamic-map"
-import { prisma } from "@/lib/prisma"
+import { getIssuesWithCategories } from "@/lib/data"
 
 export const revalidate = 0 // Disable cache for now
 

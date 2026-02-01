@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { z } from "zod"
-import { prisma } from "@/lib/prisma"
+import { getIssueById, mockIssues } from "@/lib/data"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import { issueStatusSchema, issuePrioritySchema, issueAssignSchema } from "@/lib/validations/issue"
 import { createAuditLog } from "@/lib/services/audit"
