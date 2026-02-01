@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import DynamicMap from "@/components/dynamic-map"
+import { prisma } from "@/lib/prisma"
 import { IssueDetailClient } from "./issue-detail-client"
 
 export default async function IssuePage({

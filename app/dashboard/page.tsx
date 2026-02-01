@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { api } from '@/lib/api-client';
 import { API_ENDPOINTS } from '@/lib/constants';
-import { Complaint, DashboardMetrics } from '@/types';
+import { IssueListItem, DashboardAnalytics } from '@/types';
+
 import {
   AlertCircle,
   CheckCircle2,
@@ -23,8 +24,8 @@ import { STATUS_CONFIG } from '@/lib/constants';
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
-  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
-  const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [metrics, setMetrics] = useState<DashboardAnalytics | null>(null);
+  const [complaints, setComplaints] = useState<IssueListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -35,17 +36,21 @@ export default function DashboardPage() {
   const fetchDashboardData = async () => {
     try {
       // Fetch metrics
-      const metricsResponse = await api.get(API_ENDPOINTS.ANALYTICS.DASHBOARD) as any;
-      if (metricsResponse.success) {
-        setMetrics(metricsResponse.data);
+      const metricsResponse = await api.get(API_ENDPOINTS.ANALYTICS.DASHBOARD) as DashboardAnalytics;
+      if (metricsResponse) {
+        setMetrics(metricsResponse);
       }
 
       // Fetch user's complaints
+      // API call structure depends on your client. Assuming api.get returns the data payload.
+      // If api.get returns { data: ..., pagination: ... }, we need to handle that.
+      // Based on route.ts: NextResponse.json({ data: issues, pagination: ... })
       const complaintsResponse = await api.get(API_ENDPOINTS.COMPLAINTS.LIST, {
-        params: { user_id: user?.user_id, limit: 10 },
+        params: { limit: 10 }, // You might need to change 'limit' to 'pageSize' as per route.ts
       }) as any;
-      if (complaintsResponse.success) {
-        setComplaints(complaintsResponse.data.data || complaintsResponse.data);
+
+      if (complaintsResponse.data) {
+        setComplaints(complaintsResponse.data);
       }
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
@@ -113,7 +118,7 @@ export default function DashboardPage() {
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Resolved</p>
                 <p className="text-3xl font-bold text-green-600 mt-2">
-                  {complaints.filter(c => c.status === 'resolved').length}
+                  {complaints.filter(c => c.status === 'RESOLVED').length}
                 </p>
               </div>
               <div className="bg-green-100 p-3 rounded-lg">
@@ -132,7 +137,7 @@ export default function DashboardPage() {
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">In Progress</p>
                 <p className="text-3xl font-bold text-purple-600 mt-2">
-                  {complaints.filter(c => c.status === 'in_progress' || c.status === 'acknowledged').length}
+                  {complaints.filter(c => c.status === 'IN_PROGRESS' || c.status === 'ACKNOWLEDGED').length}
                 </p>
               </div>
               <div className="bg-purple-100 p-3 rounded-lg">
@@ -151,7 +156,7 @@ export default function DashboardPage() {
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Pending</p>
                 <p className="text-3xl font-bold text-yellow-600 mt-2">
-                  {complaints.filter(c => c.status === 'submitted').length}
+                  {complaints.filter(c => c.status === 'SUBMITTED').length}
                 </p>
               </div>
               <div className="bg-yellow-100 p-3 rounded-lg">
@@ -230,19 +235,19 @@ export default function DashboardPage() {
             <div className="space-y-4">
               {filteredComplaints.map((complaint, index) => (
                 <motion.div
-                  key={complaint.complaint_id}
+                  key={complaint.id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
                   className="border border-gray-200 dark:border-gray-800 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer bg-white dark:bg-gray-900/50"
-                  onClick={() => window.location.href = `/issues/${complaint.complaint_id}`}
+                  onClick={() => window.location.href = `/issues/${complaint.id}`}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="font-semibold text-gray-900 dark:text-white">{complaint.title}</h3>
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${STATUS_CONFIG[complaint.status].bgColor} ${STATUS_CONFIG[complaint.status].textColor}`}>
-                          {STATUS_CONFIG[complaint.status].label}
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${STATUS_CONFIG[complaint.status.toLowerCase() as keyof typeof STATUS_CONFIG]?.bgColor} ${STATUS_CONFIG[complaint.status.toLowerCase() as keyof typeof STATUS_CONFIG]?.textColor}`}>
+                          {STATUS_CONFIG[complaint.status.toLowerCase() as keyof typeof STATUS_CONFIG]?.label || complaint.status}
                         </span>
                       </div>
 
@@ -253,22 +258,22 @@ export default function DashboardPage() {
                       <div className="flex items-center gap-4 text-sm text-gray-500">
                         <span className="flex items-center gap-1">
                           <MapPin className="h-4 w-4" />
-                          {complaint.location.address?.city || 'Unknown Location'}
+                          {complaint.address || 'Unknown Location'}
                         </span>
                         <span>•</span>
                         <span>
-                          {new Date(complaint.created_at).toLocaleDateString('en-IN', {
+                          {new Date(complaint.createdAt).toLocaleDateString('en-IN', {
                             day: 'numeric',
                             month: 'short',
                             year: 'numeric',
                           })}
                         </span>
-                        {complaint.votes_count && complaint.votes_count > 0 && (
+                        {complaint.voteCount > 0 && (
                           <>
                             <span>•</span>
                             <span className="flex items-center gap-1 text-blue-600">
                               <TrendingUp className="h-4 w-4" />
-                              {complaint.votes_count} votes
+                              {complaint.voteCount} votes
                             </span>
                           </>
                         )}

@@ -258,7 +258,7 @@ export default function ReportComplaintPage() {
                     <Label>Select Location on Map *</Label>
                     <div className="mt-2 border rounded-lg overflow-hidden">
                       <DynamicMap
-                        center={location}
+                        customCenter={location}
                         onLocationSelect={(lat, lng) => {
                           setLocation({ lat, lng });
                           setValue('latitude', lat);

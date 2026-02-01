@@ -51,9 +51,9 @@ export async function POST(
         data: { voteCount: { decrement: 1 } }
       })
 
-      return NextResponse.json({ 
-        voted: false, 
-        voteCount: issue.voteCount - 1 
+      return NextResponse.json({
+        voted: false,
+        voteCount: issue.voteCount - 1
       })
     }
 
@@ -92,9 +92,9 @@ export async function POST(
       issueId
     })
 
-    return NextResponse.json({ 
-      voted: true, 
-      voteCount: updatedIssue.voteCount 
+    return NextResponse.json({
+      voted: true,
+      voteCount: updatedIssue.voteCount
     })
   } catch (error) {
     console.error("Vote error:", error)

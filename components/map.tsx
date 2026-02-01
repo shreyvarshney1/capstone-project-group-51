@@ -1,6 +1,6 @@
 "use client"
 
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet"
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from "react-leaflet"
 import "leaflet/dist/leaflet.css"
 import L from "leaflet"
 import Link from "next/link"
@@ -75,11 +75,12 @@ interface Category {
 }
 
 interface MapProps {
-  issues: Issue[]
+  issues?: Issue[]
   showControls?: boolean
   height?: string
   categories?: Category[]
   customCenter?: { lat: number; lng: number }
+  onLocationSelect?: (lat: number, lng: number) => void
 }
 
 // Component to handle heatmap layer
@@ -158,25 +159,20 @@ function MarkerClusterComponent({
   const markersRef = useRef<L.Marker[]>([])
 
   useEffect(() => {
-    // Clean up existing markers
-    markersRef.current.forEach(marker => {
-      map.removeLayer(marker)
-    })
-    markersRef.current = []
-
-    if (clusterGroupRef.current) {
-      map.removeLayer(clusterGroupRef.current)
-      clusterGroupRef.current = null
+    if (!enabled) {
+      if (clusterGroupRef.current) {
+        map.removeLayer(clusterGroupRef.current)
+        clusterGroupRef.current = null
+      }
+      return
     }
 
-    if (!showPins && !enabled) return
-
-    if (enabled) {
-      // Dynamically import leaflet.markercluster
+    if (!showPins) {
+      // Marker clustering
       import("leaflet.markercluster").then(() => {
-        // Import the CSS dynamically
+        // Add MarkerCluster CSS
         if (typeof document !== "undefined") {
-          const existingLink = document.querySelector('link[href*="MarkerCluster"]')
+          const existingLink = document.querySelector('link[href*="MarkerCluster.css"]')
           if (!existingLink) {
             const link = document.createElement("link")
             link.rel = "stylesheet"
@@ -259,13 +255,28 @@ function MarkerClusterComponent({
   return null
 }
 
-export default function Map({
-  issues,
-  showControls = true,
+function LocationPicker({ onSelect }: { onSelect: (lat: number, lng: number) => void }) {
+  const [position, setPosition] = useState<L.LatLng | null>(null)
+  
+  useMapEvents({
+    click(e) {
+      setPosition(e.latlng)
+      onSelect(e.latlng.lat, e.latlng.lng)
+    },
+  })
 
+  return position === null ? null : (
+    <Marker position={position} icon={defaultIcon} />
+  )
+}
+
+export default function Map({
+  issues = [],
+  showControls = true,
   height = "600px",
   categories = [],
-  customCenter
+  customCenter,
+  onLocationSelect
 }: MapProps) {
   // Default center (Delhi, India)
   const defaultCenter: [number, number] = [28.6139, 77.2090]
@@ -336,6 +347,11 @@ export default function Map({
             enabled={layers.clusters}
             showPins={layers.pins}
           />
+
+          {/* Location Picker */}
+          {onLocationSelect && (
+            <LocationPicker onSelect={onLocationSelect} />
+          )}
         </MapContainer>
       </div>
 
@@ -356,3 +372,4 @@ export default function Map({
     </div>
   )
 }
+

@@ -4,15 +4,17 @@ import { z } from "zod"
 import { getIssuesWithCategories, mockIssues } from "@/lib/data"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import { issueSchema, issueFiltersSchema } from "@/lib/validations/issue"
-import { 
-  classifyIssue, 
-  analyzeSentiment, 
-  checkForDuplicates 
+import {
+  classifyIssue,
+  analyzeSentiment,
+  checkForDuplicates
 } from "@/lib/services/ai-classification"
 import { findBestOfficer, calculateSLADeadline } from "@/lib/services/smart-routing"
 import { detectJurisdiction } from "@/lib/services/geo-tagging"
 import { createAuditLog } from "@/lib/services/audit"
 import { sendNotification } from "@/lib/services/notifications"
+import { prisma } from "@/lib/prisma"
+
 
 export async function POST(req: Request) {
   try {
@@ -30,7 +32,7 @@ export async function POST(req: Request) {
 
     // AI Classification
     const classification = await classifyIssue(body.title, body.description)
-    
+
     // Sentiment Analysis
     const sentimentScore = analyzeSentiment(`${body.title} ${body.description}`)
 
@@ -57,7 +59,7 @@ export async function POST(req: Request) {
       jurisdiction.state
     )
 
-    const slaDeadline = category 
+    const slaDeadline = category
       ? calculateSLADeadline(new Date(), category.slaHours)
       : null
 
@@ -81,21 +83,21 @@ export async function POST(req: Request) {
         userId: session.user.id,
         isPublic: body.isPublic ?? true,
         language: body.language || "en",
-        
+
         // AI fields
         aiClassification: classification.category,
         aiConfidence: classification.confidence,
         sentimentScore,
-        
+
         // Duplicate detection
         isDuplicate: duplicateCheck.isDuplicate,
         duplicateOfId: duplicateCheck.isDuplicate ? duplicateCheck.matchingIssues[0]?.id : null,
-        
+
         // Assignment
         assignedOfficerId: assignment?.officerId,
         escalationLevel: assignment?.escalationLevel || "WARD",
         slaDeadline,
-        
+
         // Status
         status: "SUBMITTED",
         submissionMode: "WEB",
@@ -166,7 +168,7 @@ export async function POST(req: Request) {
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url)
-    
+
     // Parse filter parameters
     const filters = {
       status: searchParams.get("status")?.split(","),
@@ -184,7 +186,7 @@ export async function GET(req: Request) {
 
     // Build where clause
     const where: Record<string, unknown> = {}
-    
+
     if (filters.status?.length) {
       where.status = { in: filters.status }
     }
