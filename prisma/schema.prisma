@@ -10,61 +10,459 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// =============================================
+// USER & AUTHENTICATION MODELS
+// =============================================
+
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  role          Role      @default(CITIZEN)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  issues        Issue[]
-  accounts      Account[]
-  sessions      Session[]
+  id                  String    @id @default(cuid())
+  name                String?
+  email               String?   @unique
+  emailVerified       DateTime?
+  image               String?
+  phone               String?   @unique
+  role                Role      @default(CITIZEN)
+  aadhaarHash         String?   // Hashed Aadhaar for DigiLocker integration
+  digilockerLinked    Boolean   @default(false)
+  preferredLanguage   String    @default("en")
+  accessibilityMode   Boolean   @default(false)
+  highContrastMode    Boolean   @default(false)
+  fontSize            FontSize  @default(MEDIUM)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  
+  // Relations
+  issues              Issue[]
+  accounts            Account[]
+  sessions            Session[]
+  votes               Vote[]
+  comments            Comment[]
+  notifications       Notification[]
+  assignedIssues      Issue[]   @relation("AssignedOfficer")
+  auditLogs           AuditLog[] @relation("AuditUser")
+  performanceMetrics  OfficerMetrics?
+  offlineDrafts       OfflineDraft[]
+  
+  // Jurisdiction for officers
+  wardId              String?
+  ward                Ward?     @relation(fields: [wardId], references: [id])
+  blockId             String?
+  block               Block?    @relation(fields: [blockId], references: [id])
+  districtId          String?
+  district            District? @relation(fields: [districtId], references: [id])
+  stateId             String?
+  state               State?    @relation(fields: [stateId], references: [id])
 }
 
+model OfficerMetrics {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  totalResolved       Int      @default(0)
+  averageResolutionTime Float  @default(0)
+  currentWorkload     Int      @default(0)
+  satisfactionRating  Float    @default(0)
+  slaComplianceRate   Float    @default(100)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+// =============================================
+// ISSUE & COMPLAINT MODELS
+// =============================================
+
 model Issue {
+  id                  String      @id @default(cuid())
+  title               String
+  description         String      @db.Text
+  status              Status      @default(SUBMITTED)
+  priority            Priority    @default(MEDIUM)
+  priorityScore       Float       @default(0) // AI-calculated priority score
+  sentimentScore      Float?      // AI sentiment analysis (-1 to 1)
+  isUrgent            Boolean     @default(false)
+  isPublic            Boolean     @default(true)
+  
+  // Category & Classification
+  category            Category    @relation(fields: [categoryId], references: [id])
+  categoryId          String
+  aiClassification    String?     // AI auto-classified category
+  aiConfidence        Float?      // Classification confidence (0-1)
+  
+  // Location & Geo-tagging
+  latitude            Float
+  longitude           Float
+  address             String?
+  ward                String?
+  block               String?
+  district            String?
+  state               String?
+  pincode             String?
+  
+  // Media
+  imageUrl            String?
+  imageUrls           String[]    // Multiple images
+  voiceNoteUrl        String?     // Voice-to-text submission
+  transcribedText     String?     @db.Text // Voice transcription
+  
+  // Submission details
+  submissionMode      SubmissionMode @default(WEB)
+  language            String      @default("en")
+  
+  // User relations
+  user                User        @relation(fields: [userId], references: [id])
+  userId              String
+  
+  // Assignment & Escalation
+  assignedOfficer     User?       @relation("AssignedOfficer", fields: [assignedOfficerId], references: [id])
+  assignedOfficerId   String?
+  escalationLevel     EscalationLevel @default(WARD)
+  escalatedAt         DateTime?
+  slaDeadline         DateTime?
+  slaBreach           Boolean     @default(false)
+  
+  // Duplicate detection
+  isDuplicate         Boolean     @default(false)
+  duplicateOfId       String?
+  duplicateOf         Issue?      @relation("DuplicateIssues", fields: [duplicateOfId], references: [id])
+  duplicates          Issue[]     @relation("DuplicateIssues")
+  
+  // Community engagement
+  voteCount           Int         @default(0)
+  votes               Vote[]
+  comments            Comment[]
+  
+  // External sync
+  cpgramsId           String?     // CPGRAMS integration
+  statePortalId       String?     // State portal integration
+  externalSynced      Boolean     @default(false)
+  
+  // Timestamps
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  acknowledgedAt      DateTime?
+  resolvedAt          DateTime?
+  closedAt            DateTime?
+  
+  // History & Audit
+  statusHistory       StatusHistory[]
+  auditLogs           AuditLog[]
+  
+  @@index([latitude, longitude])
+  @@index([categoryId])
+  @@index([status])
+  @@index([userId])
+  @@index([assignedOfficerId])
+  @@index([escalationLevel])
+  @@index([createdAt])
+}
+
+model StatusHistory {
   id          String   @id @default(cuid())
-  title       String
-  description String
-  status      Status   @default(SUBMITTED)
-  category    Category @relation(fields: [categoryId], references: [id])
-  categoryId  String
-  latitude    Float
-  longitude   Float
-  address     String?
-  imageUrl    String?
-  user        User     @relation(fields: [userId], references: [id])
+  issueId     String
+  issue       Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  fromStatus  Status?
+  toStatus    Status
+  changedBy   String?
+  note        String?
+  createdAt   DateTime @default(now())
+}
+
+model OfflineDraft {
+  id          String   @id @default(cuid())
   userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  data        Json     // Draft issue data
+  synced      Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
+// =============================================
+// CATEGORY MODEL (Extended for 15+ types)
+// =============================================
+
 model Category {
   id          String   @id @default(cuid())
   name        String   @unique
+  nameHi      String?  // Hindi
+  nameTa      String?  // Tamil
+  nameTe      String?  // Telugu
+  nameBn      String?  // Bengali
+  nameMr      String?  // Marathi
+  nameGu      String?  // Gujarati
+  nameKn      String?  // Kannada
+  nameMl      String?  // Malayalam
+  namePa      String?  // Punjabi
+  nameOr      String?  // Odia
   description String?
+  icon        String?
+  color       String?
+  slaHours    Int      @default(168) // Default 7 days SLA
   issues      Issue[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
+// =============================================
+// JURISDICTION MODELS (Hierarchical)
+// =============================================
+
+model State {
+  id          String     @id @default(cuid())
+  name        String     @unique
+  code        String     @unique
+  districts   District[]
+  officers    User[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model District {
+  id          String   @id @default(cuid())
+  name        String
+  code        String
+  stateId     String
+  state       State    @relation(fields: [stateId], references: [id])
+  blocks      Block[]
+  officers    User[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([stateId, name])
+  @@unique([stateId, code])
+}
+
+model Block {
+  id          String   @id @default(cuid())
+  name        String
+  code        String
+  districtId  String
+  district    District @relation(fields: [districtId], references: [id])
+  wards       Ward[]
+  officers    User[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([districtId, name])
+  @@unique([districtId, code])
+}
+
+model Ward {
+  id          String   @id @default(cuid())
+  name        String
+  code        String
+  blockId     String
+  block       Block    @relation(fields: [blockId], references: [id])
+  officers    User[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([blockId, name])
+  @@unique([blockId, code])
+}
+
+// =============================================
+// COMMUNITY ENGAGEMENT MODELS
+// =============================================
+
+model Vote {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  issueId   String
+  issue     Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  value     Int      @default(1) // 1 for upvote
+  createdAt DateTime @default(now())
+  
+  @@unique([userId, issueId])
+}
+
+model Comment {
+  id          String    @id @default(cuid())
+  content     String    @db.Text
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  issueId     String
+  issue       Issue     @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  parentId    String?
+  parent      Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies     Comment[] @relation("CommentReplies")
+  isModerated Boolean   @default(false)
+  isHidden    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// =============================================
+// NOTIFICATION MODEL
+// =============================================
+
+model Notification {
+  id          String           @id @default(cuid())
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        NotificationType
+  title       String
+  message     String
+  data        Json?
+  channel     NotificationChannel @default(IN_APP)
+  read        Boolean          @default(false)
+  sentAt      DateTime?
+  createdAt   DateTime         @default(now())
+  
+  @@index([userId, read])
+}
+
+// =============================================
+// AUDIT & SECURITY MODELS
+// =============================================
+
+model AuditLog {
+  id          String      @id @default(cuid())
+  action      AuditAction
+  entityType  String
+  entityId    String
+  userId      String?
+  user        User?       @relation("AuditUser", fields: [userId], references: [id])
+  issueId     String?
+  issue       Issue?      @relation(fields: [issueId], references: [id])
+  oldValue    Json?
+  newValue    Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime    @default(now())
+  
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// =============================================
+// ANALYTICS MODELS
+// =============================================
+
+model DailyAnalytics {
+  id              String   @id @default(cuid())
+  date            DateTime @unique @db.Date
+  totalIssues     Int      @default(0)
+  resolvedIssues  Int      @default(0)
+  avgResolutionTime Float  @default(0)
+  categoryBreakdown Json?
+  locationBreakdown Json?
+  sentimentAverage Float?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model PredictiveAnalytics {
+  id              String   @id @default(cuid())
+  date            DateTime @db.Date
+  ward            String?
+  district        String?
+  predictedVolume Int
+  category        String?
+  confidence      Float
+  createdAt       DateTime @default(now())
+  
+  @@unique([date, ward, category])
+}
+
+// =============================================
+// ENUMS
+// =============================================
+
 enum Role {
   CITIZEN
+  WARD_OFFICER
+  BLOCK_OFFICER
+  DISTRICT_OFFICER
+  STATE_OFFICER
   ADMIN
-  STAFF
+  SUPER_ADMIN
 }
 
 enum Status {
+  DRAFT
   SUBMITTED
   ACKNOWLEDGED
+  ASSIGNED
   IN_PROGRESS
+  ESCALATED
   RESOLVED
   CLOSED
+  REJECTED
 }
 
-// NextAuth Models
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+  CRITICAL
+}
+
+enum EscalationLevel {
+  WARD
+  BLOCK
+  DISTRICT
+  STATE
+}
+
+enum SubmissionMode {
+  WEB
+  MOBILE_APP
+  VOICE
+  SMS
+  WHATSAPP
+  OFFLINE_SYNC
+}
+
+enum FontSize {
+  SMALL
+  MEDIUM
+  LARGE
+  EXTRA_LARGE
+}
+
+enum NotificationType {
+  STATUS_UPDATE
+  COMMENT_ADDED
+  VOTE_RECEIVED
+  ESCALATION
+  SLA_WARNING
+  SLA_BREACH
+  DUPLICATE_DETECTED
+  ASSIGNMENT
+  RESOLUTION
+  SYSTEM
+}
+
+enum NotificationChannel {
+  IN_APP
+  EMAIL
+  SMS
+  PUSH
+  WHATSAPP
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  STATUS_CHANGE
+  ESCALATION
+  ASSIGNMENT
+  VOTE
+  COMMENT
+  LOGIN
+  LOGOUT
+  EXPORT
+}
+
+// =============================================
+// NEXTAUTH MODELS
+// =============================================
+
 model Account {
   id                 String  @id @default(cuid())
   userId             String
