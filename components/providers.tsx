@@ -1,5 +1,6 @@
 "use client"
 
+import "@/lib/i18n"
 import { SessionProvider } from "next-auth/react"
 import { LanguageProvider } from "@/components/language-selector"
 import { AccessibilityProvider } from "@/components/accessibility-panel"

@@ -267,9 +267,10 @@ export default function Map({
   // Default center (Delhi, India)
   const defaultCenter: [number, number] = [28.6139, 77.2090]
 
-  // Calculate center based on issues if available
-  const center: [number, number] =
-    issues.length > 0
+  // Calculate center based on props, issues, or default
+  const center: [number, number] = customCenter
+    ? [customCenter.lat, customCenter.lng]
+    : issues && issues.length > 0
       ? [issues[0].latitude, issues[0].longitude]
       : defaultCenter
 

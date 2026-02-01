@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth"
 import { redirect } from "next/navigation"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
-import { prisma } from "@/lib/prisma"
+import { getIssuesWithCategories } from "@/lib/data"
 import { AdminDashboard } from "@/components/admin-dashboard"
 
 export default async function AdminPage() {
