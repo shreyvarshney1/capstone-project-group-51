@@ -42,12 +42,12 @@ export default function ProfilePage() {
         name: user?.name || '',
         email: user?.email || '',
         phone: user?.phone || '',
-        language: user?.preferences?.language || 'en',
-        theme: user?.preferences?.theme || 'light',
+        language: user?.preferredLanguage || 'en',
+        theme: 'light',
         notifications: {
-            email: user?.preferences?.notifications?.email ?? true,
-            sms: user?.preferences?.notifications?.sms ?? true,
-            push: user?.preferences?.notifications?.push ?? true,
+            email: true,
+            sms: true,
+            push: true,
         },
     });
 
@@ -60,18 +60,15 @@ export default function ProfilePage() {
     const handleSave = async () => {
         setIsLoading(true);
         try {
-            const response = await api.put(API_ENDPOINTS.USER.PROFILE, {
+            const response = await api.patch(API_ENDPOINTS.USER.PROFILE, {
                 name: formData.name,
                 phone: formData.phone,
-                preferences: {
-                    language: formData.language,
-                    theme: formData.theme,
-                    notifications: formData.notifications,
-                },
+                preferredLanguage: formData.language,
+                // theme and notifications are not currently supported by the backend but could be added
             }) as any;
 
-            if (response.success) {
-                updateUser(response.data);
+            if (response && response.id) {
+                updateUser(response);
                 i18n.changeLanguage(formData.language);
                 toast.success('Profile updated successfully');
                 setIsEditing(false);
@@ -96,7 +93,7 @@ export default function ProfilePage() {
             }) as any;
 
             if (response.success) {
-                updateUser({ avatar: response.data.url });
+                updateUser({ image: response.data.url });
                 toast.success('Avatar updated successfully');
             }
         } catch (error) {
@@ -156,7 +153,7 @@ export default function ProfilePage() {
                             <div className="flex items-center gap-6">
                                 <div className="relative">
                                     <Avatar className="h-24 w-24">
-                                        <img src={user.avatar || '/default-avatar.png'} alt={user.name} />
+                                        <img src={user.image || '/default-avatar.png'} alt={user.name || 'User'} />
                                     </Avatar>
                                     {isEditing && (
                                         <label className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 transition-colors">
@@ -227,7 +224,7 @@ export default function ProfilePage() {
                                     <Label htmlFor="joined">Member Since</Label>
                                     <Input
                                         id="joined"
-                                        value={new Date(user.created_at).toLocaleDateString('en-IN', {
+                                        value={new Date(user.createdAt).toLocaleDateString('en-IN', {
                                             month: 'long',
                                             year: 'numeric',
                                         })}
@@ -376,19 +373,19 @@ export default function ProfilePage() {
                         <CardContent>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <div className="text-center p-4 bg-blue-50 rounded-lg">
-                                    <p className="text-3xl font-bold text-blue-600">{user.metadata?.total_complaints || 0}</p>
+                                    <p className="text-3xl font-bold text-blue-600">{user._count?.issues || 0}</p>
                                     <p className="text-sm text-gray-600 mt-1">Complaints Filed</p>
                                 </div>
                                 <div className="text-center p-4 bg-green-50 rounded-lg">
-                                    <p className="text-3xl font-bold text-green-600">{user.metadata?.resolved_complaints || 0}</p>
+                                    <p className="text-3xl font-bold text-green-600">{user._count?.issues || 0}</p>
                                     <p className="text-sm text-gray-600 mt-1">Resolved</p>
                                 </div>
                                 <div className="text-center p-4 bg-purple-50 rounded-lg">
-                                    <p className="text-3xl font-bold text-purple-600">{user.metadata?.total_votes || 0}</p>
+                                    <p className="text-3xl font-bold text-purple-600">{user._count?.votes || 0}</p>
                                     <p className="text-sm text-gray-600 mt-1">Votes Cast</p>
                                 </div>
                                 <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                                    <p className="text-3xl font-bold text-yellow-600">{user.metadata?.total_comments || 0}</p>
+                                    <p className="text-3xl font-bold text-yellow-600">{user._count?.comments || 0}</p>
                                     <p className="text-sm text-gray-600 mt-1">Comments</p>
                                 </div>
                             </div>

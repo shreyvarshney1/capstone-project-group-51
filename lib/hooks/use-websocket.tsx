@@ -5,7 +5,7 @@ import { io, Socket } from 'socket.io-client';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { useNotificationStore } from '@/lib/stores/notification-store';
 import { WS_EVENTS } from '@/lib/constants';
-import { WebSocketMessage } from '@/types';
+import { WebSocketMessage, NotificationType, NotificationChannel } from '@/types';
 import { toast } from 'sonner';
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:8000';
@@ -66,14 +66,16 @@ export function useWebSocket() {
 
             // Add to notification store
             addNotification({
-                notification_id: `ws-${Date.now()}`,
-                user_id: '',
-                type: 'complaint_update',
+                id: `ws-${Date.now()}`,
+                userId: '',
+                type: NotificationType.STATUS_UPDATE,
                 title: 'Complaint Updated',
                 message: `Your complaint has been updated to ${data.data.status}`,
                 data: data.data,
-                is_read: false,
-                created_at: new Date().toISOString(),
+                read: false,
+                createdAt: new Date(),
+                channel: NotificationChannel.IN_APP,
+                sentAt: new Date()
             });
         });
 
@@ -86,14 +88,16 @@ export function useWebSocket() {
             });
 
             addNotification({
-                notification_id: `ws-${Date.now()}`,
-                user_id: '',
-                type: 'new_comment',
+                id: `ws-${Date.now()}`,
+                userId: '',
+                type: NotificationType.COMMENT_ADDED,
                 title: 'New Comment',
                 message: 'Someone commented on your complaint',
                 data: data.data,
-                is_read: false,
-                created_at: new Date().toISOString(),
+                read: false,
+                createdAt: new Date(),
+                channel: NotificationChannel.IN_APP,
+                sentAt: new Date()
             });
         });
 
@@ -111,14 +115,16 @@ export function useWebSocket() {
             });
 
             addNotification({
-                notification_id: `ws-${Date.now()}`,
-                user_id: '',
-                type: 'assignment',
+                id: `ws-${Date.now()}`,
+                userId: '',
+                type: NotificationType.ASSIGNMENT,
                 title: 'Complaint Assigned',
                 message: `Your complaint has been assigned to ${data.data.officer_name}`,
                 data: data.data,
-                is_read: false,
-                created_at: new Date().toISOString(),
+                read: false,
+                createdAt: new Date(),
+                channel: NotificationChannel.IN_APP,
+                sentAt: new Date()
             });
         });
 
@@ -131,14 +137,16 @@ export function useWebSocket() {
             });
 
             addNotification({
-                notification_id: `ws-${Date.now()}`,
-                user_id: '',
-                type: 'escalation',
+                id: `ws-${Date.now()}`,
+                userId: '',
+                type: NotificationType.ESCALATION,
                 title: 'Complaint Escalated',
                 message: `Your complaint has been escalated to ${data.data.to_level}`,
                 data: data.data,
-                is_read: false,
-                created_at: new Date().toISOString(),
+                read: false,
+                createdAt: new Date(),
+                channel: NotificationChannel.IN_APP,
+                sentAt: new Date()
             });
         });
 
@@ -151,14 +159,16 @@ export function useWebSocket() {
             });
 
             addNotification({
-                notification_id: `ws-${Date.now()}`,
-                user_id: '',
-                type: 'resolution',
+                id: `ws-${Date.now()}`,
+                userId: '',
+                type: NotificationType.RESOLUTION,
                 title: 'Complaint Resolved',
                 message: 'Your complaint has been successfully resolved',
                 data: data.data,
-                is_read: false,
-                created_at: new Date().toISOString(),
+                read: false,
+                createdAt: new Date(),
+                channel: NotificationChannel.IN_APP,
+                sentAt: new Date()
             });
         });
 

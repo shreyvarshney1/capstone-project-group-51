@@ -2,12 +2,12 @@
 // TYPE DEFINITIONS FOR CIVICCONNECT
 // =============================================
 
-import { 
-  Issue, 
-  User, 
-  Category, 
-  Comment, 
-  Vote, 
+import {
+  Issue,
+  User,
+  Category,
+  Comment,
+  Vote,
   Notification,
   AuditLog,
   Status,
@@ -18,6 +18,25 @@ import {
   NotificationType,
   NotificationChannel
 } from "@prisma/client"
+
+export type {
+  Issue,
+  User,
+  Category,
+  Vote,
+  Notification,
+  AuditLog
+}
+
+export interface UserWithStats extends User {
+  _count?: {
+    issues: number
+    votes: number
+    comments: number
+    assignedIssues?: number
+  }
+}
+
 
 // =============================================
 // EXTENDED ISSUE TYPES
@@ -46,6 +65,8 @@ export interface IssueWithRelations extends Issue {
 export interface IssueListItem {
   id: string
   title: string
+  description: string
+
   status: Status
   priority: Priority
   category: {
@@ -270,7 +291,7 @@ export interface PriorityScoreResult {
 // ACCESSIBILITY & LOCALIZATION
 // =============================================
 
-export type SupportedLanguage = 
+export type SupportedLanguage =
   | "en" // English
   | "hi" // Hindi
   | "ta" // Tamil
@@ -385,12 +406,17 @@ export interface ApiResponse<T> {
 }
 
 // Re-export Prisma enums for convenience
-export { 
-  Status, 
-  Priority, 
-  Role, 
-  EscalationLevel, 
-  SubmissionMode, 
-  NotificationType, 
-  NotificationChannel 
+export {
+  Status,
+  Priority,
+  Role,
+  EscalationLevel,
+  SubmissionMode,
+  NotificationType,
+  NotificationChannel
+}
+
+export interface WebSocketMessage {
+  event: string;
+  data: any;
 }

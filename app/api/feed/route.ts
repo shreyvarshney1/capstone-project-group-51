@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { prisma } from "@/lib/prisma"
+
+
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import { maskIssueForPublic, anonymizeUser } from "@/lib/services/audit"
 
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url)
-    
+
     const page = parseInt(searchParams.get("page") || "1")
     const pageSize = parseInt(searchParams.get("pageSize") || "20")
     const ward = searchParams.get("ward")

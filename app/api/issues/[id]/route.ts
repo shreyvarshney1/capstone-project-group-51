@@ -8,6 +8,8 @@ import { createAuditLog } from "@/lib/services/audit"
 import { notifyStatusUpdate, notifyEscalation } from "@/lib/services/notifications"
 import { updateOfficerWorkload } from "@/lib/services/smart-routing"
 import { calculatePriorityScore } from "@/lib/services/ai-classification"
+import { prisma } from "@/lib/prisma"
+
 
 export async function GET(
   req: Request,
@@ -128,7 +130,7 @@ export async function PATCH(
     switch (action) {
       case "updateStatus": {
         const { status, note } = issueStatusSchema.parse(json)
-        
+
         updatedIssue = await prisma.issue.update({
           where: { id },
           data: {
@@ -168,7 +170,7 @@ export async function PATCH(
 
       case "updatePriority": {
         const { priority } = issuePrioritySchema.parse(json)
-        
+
         updatedIssue = await prisma.issue.update({
           where: { id },
           data: {
@@ -191,7 +193,7 @@ export async function PATCH(
 
       case "assign": {
         const { assignedOfficerId } = issueAssignSchema.parse(json)
-        
+
         // Update workload for old and new officer
         if (currentIssue.assignedOfficerId) {
           await updateOfficerWorkload(currentIssue.assignedOfficerId, -1)

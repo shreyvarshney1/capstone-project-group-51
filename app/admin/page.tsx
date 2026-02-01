@@ -2,7 +2,9 @@ import { getServerSession } from "next-auth"
 import { redirect } from "next/navigation"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import { getIssuesWithCategories } from "@/lib/data"
+import { prisma } from "@/lib/prisma"
 import { AdminDashboard } from "@/components/admin-dashboard"
+
 
 export default async function AdminPage() {
   const session = await getServerSession(authOptions)
@@ -109,7 +111,7 @@ export default async function AdminPage() {
             Manage issues, users, and system configuration
           </p>
         </div>
-        <AdminDashboard 
+        <AdminDashboard
           initialIssues={serializedIssues}
           users={serializedUsers}
           categories={serializedCategories}

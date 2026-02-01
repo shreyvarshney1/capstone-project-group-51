@@ -1,7 +1,8 @@
 // API Base Configuration
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+// API Base Configuration
+export const API_BASE_URL = '/api';
 
-// FastAPI Backend Endpoints (example URLs - assuming backend structure)
+// Next.js Backend Endpoints
 export const API_ENDPOINTS = {
     // Authentication
     AUTH: {
@@ -12,47 +13,47 @@ export const API_ENDPOINTS = {
         RESET_PASSWORD: '/auth/reset-password',
         VERIFY_OTP: '/auth/verify-otp',
     },
-    // Complaints
+    // Complaints (Issues)
     COMPLAINTS: {
-        LIST: '/complaints',
-        CREATE: '/complaints',
-        DETAIL: (id: string) => `/complaints/${id}`,
-        UPDATE: (id: string) => `/complaints/${id}`,
-        DELETE: (id: string) => `/complaints/${id}`,
-        ESCALATE: (id: string) => `/complaints/${id}/escalate`,
-        RESOLVE: (id: string) => `/complaints/${id}/resolve`,
-        HISTORY: (id: string) => `/complaints/${id}/history`,
-        NEARBY: '/complaints/nearby',
-        SIMILAR: (id: string) => `/complaints/similar/${id}`,
-        DUPLICATE_CHECK: '/complaints/duplicate-check',
-        EXPORT: '/complaints/export',
-        TRENDING: '/complaints/trending',
-        HEATMAP: '/complaints/heatmap',
+        LIST: '/issues',
+        CREATE: '/issues',
+        DETAIL: (id: string) => `/issues/${id}`,
+        UPDATE: (id: string) => `/issues/${id}`,
+        DELETE: (id: string) => `/issues/${id}`,
+        ESCALATE: (id: string) => `/issues/${id}/escalate`,
+        RESOLVE: (id: string) => `/issues/${id}/resolve`,
+        HISTORY: (id: string) => `/issues/${id}/history`,
+        NEARBY: '/issues/nearby',
+        SIMILAR: (id: string) => `/issues/similar/${id}`,
+        DUPLICATE_CHECK: '/issues/duplicate-check',
+        EXPORT: '/issues/export',
+        TRENDING: '/feed?sortBy=trending', // feed route handles public/trending
+        HEATMAP: '/analytics?type=heatmap',
     },
     // Community
     COMMUNITY: {
-        COMMENTS: (id: string) => `/complaints/${id}/comments`,
-        ADD_COMMENT: (id: string) => `/complaints/${id}/comments`,
-        DELETE_COMMENT: (commentId: string) => `/comments/${commentId}`,
-        VOTE: (id: string) => `/complaints/${id}/vote`,
-        SHARE: (id: string) => `/complaints/${id}/share`,
+        COMMENTS: (id: string) => `/issues/${id}/comments`,
+        ADD_COMMENT: (id: string) => `/issues/${id}/comments`,
+        DELETE_COMMENT: (commentId: string) => `/issues/comments/${commentId}`, // Check comments route
+        VOTE: (id: string) => `/issues/${id}/vote`,
+        SHARE: (id: string) => `/issues/${id}/share`,
     },
     // Analytics
     ANALYTICS: {
-        DASHBOARD: '/analytics/dashboard',
-        BY_CATEGORY: '/analytics/by-category',
-        BY_LOCATION: '/analytics/by-location',
-        BY_OFFICER: '/analytics/by-officer',
-        TRENDS: '/analytics/trends',
-        PREDICTIONS: '/analytics/predictions',
-        REPORT: '/analytics/report',
+        DASHBOARD: '/analytics?type=dashboard',
+        BY_CATEGORY: '/analytics?type=category-trends',
+        BY_LOCATION: '/analytics?type=by-location',
+        BY_OFFICER: '/analytics?type=performance',
+        TRENDS: '/analytics?type=trends',
+        PREDICTIONS: '/analytics?type=predictive',
+        REPORT: '/analytics?type=report',
     },
     // User
     USER: {
-        PROFILE: '/users/me',
-        UPDATE_PROFILE: '/users/me',
-        UPLOAD_AVATAR: '/users/me/avatar',
-        NOTIFICATIONS: '/users/me/notifications',
+        PROFILE: '/user',
+        UPDATE_PROFILE: '/user',
+        UPLOAD_AVATAR: '/user/avatar',
+        NOTIFICATIONS: '/user/notifications',
         MARK_READ: (id: string) => `/notifications/${id}/read`,
     },
     // Officers

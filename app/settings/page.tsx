@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
+import { useTheme } from "next-themes"
 import { redirect } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -51,11 +52,12 @@ interface NotificationPreferences {
 export default function SettingsPage() {
   const { data: session, status } = useSession()
   const { language, setLanguage } = useLanguage()
+  const { resolvedTheme, setTheme } = useTheme()
   const { settings: accessibilitySettings, updateSettings: updateAccessibility, resetSettings: resetAccessibility } = useAccessibility()
 
   const [isSaving, setIsSaving] = useState(false)
   const [savedMessage, setSavedMessage] = useState("")
-  
+
   const [notifications, setNotifications] = useState<NotificationPreferences>({
     email: true,
     sms: false,
@@ -74,7 +76,7 @@ export default function SettingsPage() {
     if (!session) {
       redirect("/login")
     }
-    
+
     // Load user preferences from API
     loadPreferences()
   }, [session, status])
@@ -110,11 +112,11 @@ export default function SettingsPage() {
         body: JSON.stringify({
           preferredLanguage: language,
           phone: phoneNumber || undefined,
-          accessibilityMode: accessibilitySettings.darkMode || accessibilitySettings.highContrast,
+          accessibilityMode: (resolvedTheme === 'dark') || accessibilitySettings.highContrast,
           highContrastMode: accessibilitySettings.highContrast,
-          fontSize: accessibilitySettings.fontSize === "extra-large" ? "EXTRA_LARGE" 
-            : accessibilitySettings.fontSize === "large" ? "LARGE" 
-            : "MEDIUM",
+          fontSize: accessibilitySettings.fontSize === "extra-large" ? "EXTRA_LARGE"
+            : accessibilitySettings.fontSize === "large" ? "LARGE"
+              : "MEDIUM",
         }),
       })
 
@@ -230,7 +232,7 @@ export default function SettingsPage() {
               {/* Dark Mode */}
               <div className="flex items-center justify-between p-4 rounded-lg border">
                 <div className="flex items-center gap-3">
-                  {accessibilitySettings.darkMode ? (
+                  {resolvedTheme === 'dark' ? (
                     <Moon className="h-5 w-5" />
                   ) : (
                     <Sun className="h-5 w-5" />
@@ -241,11 +243,11 @@ export default function SettingsPage() {
                   </div>
                 </div>
                 <Button
-                  variant={accessibilitySettings.darkMode ? "default" : "outline"}
+                  variant={resolvedTheme === 'dark' ? "default" : "outline"}
                   size="sm"
-                  onClick={() => updateAccessibility({ darkMode: !accessibilitySettings.darkMode })}
+                  onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
                 >
-                  {accessibilitySettings.darkMode ? "On" : "Off"}
+                  {resolvedTheme === 'dark' ? "On" : "Off"}
                 </Button>
               </div>
 
@@ -396,7 +398,7 @@ export default function SettingsPage() {
                   { key: "votes" as const, label: "Votes on my issues" },
                   { key: "escalations" as const, label: "Issue escalations" },
                 ].map(item => (
-                  <div 
+                  <div
                     key={item.key}
                     className="flex items-center justify-between p-3 rounded-lg border"
                   >

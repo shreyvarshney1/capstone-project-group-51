@@ -18,29 +18,29 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     unreadCount: 0,
 
     setNotifications: (notifications) => {
-        const unread = notifications.filter(n => !n.is_read).length;
+        const unread = notifications.filter(n => !n.read).length;
         set({ notifications, unreadCount: unread });
     },
 
     addNotification: (notification) => {
         const current = get().notifications;
         const updated = [notification, ...current];
-        const unread = updated.filter(n => !n.is_read).length;
+        const unread = updated.filter(n => !n.read).length;
         set({ notifications: updated, unreadCount: unread });
     },
 
     markAsRead: (notificationId) => {
         const current = get().notifications;
         const updated = current.map(n =>
-            n.notification_id === notificationId ? { ...n, is_read: true } : n
+            n.id === notificationId ? { ...n, read: true } : n
         );
-        const unread = updated.filter(n => !n.is_read).length;
+        const unread = updated.filter(n => !n.read).length;
         set({ notifications: updated, unreadCount: unread });
     },
 
     markAllAsRead: () => {
         const current = get().notifications;
-        const updated = current.map(n => ({ ...n, is_read: true }));
+        const updated = current.map(n => ({ ...n, read: true }));
         set({ notifications: updated, unreadCount: 0 });
     },
 
