@@ -4,15 +4,23 @@ import "@/lib/i18n"
 import { SessionProvider } from "next-auth/react"
 import { LanguageProvider } from "@/components/language-selector"
 import { AccessibilityProvider } from "@/components/accessibility-panel"
+import { ThemeProvider as NextThemesProvider } from "next-themes"
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
-      <AccessibilityProvider>
-        <LanguageProvider>
-          {children}
-        </LanguageProvider>
-      </AccessibilityProvider>
+      <NextThemesProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        disableTransitionOnChange
+      >
+        <AccessibilityProvider>
+          <LanguageProvider>
+            {children}
+          </LanguageProvider>
+        </AccessibilityProvider>
+      </NextThemesProvider>
     </SessionProvider>
   )
 }

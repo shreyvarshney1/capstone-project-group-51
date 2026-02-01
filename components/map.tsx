@@ -7,10 +7,10 @@ import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect, useRef, useCallback } from "react"
-import { 
-  HeatmapControls, 
-  HeatmapLegend, 
-  useHeatmapData 
+import {
+  HeatmapControls,
+  HeatmapLegend,
+  useHeatmapData
 } from "@/components/heatmap-controls"
 
 // Type for layer visibility state
@@ -79,15 +79,16 @@ interface MapProps {
   showControls?: boolean
   height?: string
   categories?: Category[]
+  customCenter?: { lat: number; lng: number }
 }
 
 // Component to handle heatmap layer
-function HeatmapLayerComponent({ 
-  issues, 
-  enabled 
-}: { 
+function HeatmapLayerComponent({
+  issues,
+  enabled
+}: {
   issues: Issue[]
-  enabled: boolean 
+  enabled: boolean
 }) {
   const map = useMap()
   const heatLayerRef = useRef<any>(null)
@@ -143,11 +144,11 @@ function HeatmapLayerComponent({
 }
 
 // Component to handle marker clustering
-function MarkerClusterComponent({ 
-  issues, 
+function MarkerClusterComponent({
+  issues,
   enabled,
   showPins
-}: { 
+}: {
   issues: Issue[]
   enabled: boolean
   showPins: boolean
@@ -181,7 +182,7 @@ function MarkerClusterComponent({
             link.rel = "stylesheet"
             link.href = "https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css"
             document.head.appendChild(link)
-            
+
             const linkDefault = document.createElement("link")
             linkDefault.rel = "stylesheet"
             linkDefault.href = "https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css"
@@ -258,11 +259,13 @@ function MarkerClusterComponent({
   return null
 }
 
-export default function Map({ 
-  issues, 
+export default function Map({
+  issues,
   showControls = true,
+
   height = "600px",
-  categories = []
+  categories = [],
+  customCenter
 }: MapProps) {
   // Default center (Delhi, India)
   const defaultCenter: [number, number] = [28.6139, 77.2090]
@@ -290,14 +293,14 @@ export default function Map({
     : issues
 
   // Get unique categories from issues if not provided
-  const uniqueCategories: Array<{ id: string; name: string }> = categories.length > 0 
-    ? categories 
+  const uniqueCategories: Array<{ id: string; name: string }> = categories.length > 0
+    ? categories
     : issues.reduce((acc, issue) => {
-        if (!acc.find(c => c.id === issue.category.id)) {
-          acc.push(issue.category)
-        }
-        return acc
-      }, [] as Array<{ id: string; name: string }>)
+      if (!acc.find(c => c.id === issue.category.id)) {
+        acc.push(issue.category)
+      }
+      return acc
+    }, [] as Array<{ id: string; name: string }>)
 
   // Stats for legend
   const stats = {
@@ -320,16 +323,16 @@ export default function Map({
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          
+
           {/* Heatmap Layer */}
-          <HeatmapLayerComponent 
-            issues={filteredIssues} 
-            enabled={layers.heatmap} 
+          <HeatmapLayerComponent
+            issues={filteredIssues}
+            enabled={layers.heatmap}
           />
-          
+
           {/* Marker Cluster or Pins */}
-          <MarkerClusterComponent 
-            issues={filteredIssues} 
+          <MarkerClusterComponent
+            issues={filteredIssues}
             enabled={layers.clusters}
             showPins={layers.pins}
           />

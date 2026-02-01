@@ -1,5 +1,6 @@
 import DynamicMap from "@/components/dynamic-map"
 import { getIssuesWithCategories } from "@/lib/data"
+import { prisma } from "@/lib/prisma"
 
 export const revalidate = 0 // Disable cache for now
 
@@ -50,14 +51,14 @@ export default async function MapPage() {
           </p>
         </div>
         <div className="bg-white dark:bg-gray-950 p-2 rounded-2xl shadow-xl border-2">
-          <DynamicMap 
-            issues={serializedIssues} 
+          <DynamicMap
+            issues={serializedIssues}
             categories={serializedCategories}
             showControls={true}
             height="700px"
           />
         </div>
-        
+
         {/* Legend for status colors */}
         <div className="mt-6 p-4 bg-white dark:bg-gray-950 rounded-xl border">
           <h3 className="font-semibold mb-3">Issue Status Legend</h3>
@@ -71,8 +72,8 @@ export default async function MapPage() {
               { status: "ESCALATED", color: "#dc2626", label: "Escalated" },
             ].map(({ status, color, label }) => (
               <div key={status} className="flex items-center gap-2">
-                <div 
-                  className="w-4 h-4 rounded-full border-2 border-white shadow" 
+                <div
+                  className="w-4 h-4 rounded-full border-2 border-white shadow"
                   style={{ backgroundColor: color }}
                 />
                 <span className="text-sm">{label}</span>
