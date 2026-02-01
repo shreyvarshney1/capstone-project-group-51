@@ -40,8 +40,8 @@ import { useTranslation } from "react-i18next";
 export default function ProfilePage() {
   const router = useRouter();
   const { t, i18n } = useTranslation();
-  const { user, updateUser, isAuthenticated } = useAuthStore();
-  const [isLoading, setIsLoading] = useState(false);
+  const { user, updateUser, isAuthenticated, isLoading } = useAuthStore();
+  const [isSaving, setIsSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -58,13 +58,13 @@ export default function ProfilePage() {
   });
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isLoading && !isAuthenticated) {
       router.push("/login");
     }
   }, [isAuthenticated, router]);
 
   const handleSave = async () => {
-    setIsLoading(true);
+    setIsSaving(true);
     try {
       const response = (await api.patch(API_ENDPOINTS.USER.PROFILE, {
         name: formData.name,
@@ -82,7 +82,7 @@ export default function ProfilePage() {
     } catch (error) {
       toast.error("Failed to update profile");
     } finally {
-      setIsLoading(false);
+      setIsSaving(false);
     }
   };
 
@@ -140,8 +140,8 @@ export default function ProfilePage() {
                 <Button variant="outline" onClick={() => setIsEditing(false)}>
                   Cancel
                 </Button>
-                <Button onClick={handleSave} disabled={isLoading}>
-                  {isLoading ? (
+                <Button onClick={handleSave} disabled={isSaving}>
+                  {isSaving ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Saving...

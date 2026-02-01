@@ -145,7 +145,7 @@ export function IssueDetailClient({ issue }: IssueDetailClientProps) {
 
         {/* Header Card */}
         <Card className="mb-6 overflow-hidden py-0">
-          <div className="bg-linear-to-r from-blue-600 to-purple-600 p-6">
+          <div className="bg-linear-to-r from-blue-600 to-purple-600 p-6 text-background">
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
               <div className="flex-1">
                 <div className="flex items-start gap-4">
@@ -160,8 +160,8 @@ export function IssueDetailClient({ issue }: IssueDetailClientProps) {
                     <h1 className="text-2xl md:text-3xl font-bold mb-2 text-pretty wrap-break-word">
                       {issue.title}
                     </h1>
-                    <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1 font-medium text-foreground">
+                    <div className="flex flex-wrap items-center gap-2 text-sm text-muted-background">
+                      <span className="flex items-center gap-1 font-medium text-background">
                         {issue.user.name || "Anonymous"}
                       </span>
                       <span>•</span>

@@ -38,7 +38,7 @@ import DynamicMap from "@/components/dynamic-map";
 
 export default function ReportPage() {
   const router = useRouter();
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState(1);
 
@@ -56,7 +56,7 @@ export default function ReportPage() {
   const [locationSelected, setLocationSelected] = useState(false);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isLoading && !isAuthenticated) {
       router.push(`/login?from=/report`);
     } else {
       // Initialize with user's location if available
@@ -156,7 +156,13 @@ export default function ReportPage() {
     }
   };
 
-  if (!isAuthenticated) return null;
+  if (authLoading || !isAuthenticated) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-muted/10 py-8">
