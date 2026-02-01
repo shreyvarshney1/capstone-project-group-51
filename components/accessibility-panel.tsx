@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Settings, Eye, Type, Volume2, Contrast, X, Moon, Sun } from "lucide-react"
+import { useTheme } from "next-themes"
 
 export interface AccessibilitySettings {
   highContrast: boolean
   fontSize: "normal" | "large" | "extra-large"
   reducedMotion: boolean
   screenReaderOptimized: boolean
-  darkMode: boolean
 }
 
 const defaultSettings: AccessibilitySettings = {
@@ -19,7 +19,6 @@ const defaultSettings: AccessibilitySettings = {
   fontSize: "normal",
   reducedMotion: false,
   screenReaderOptimized: false,
-  darkMode: false,
 }
 
 interface AccessibilityContextType {
@@ -54,7 +53,6 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
     if (!saved) {
       setSettings(prev => ({
         ...prev,
-        darkMode: prefersDark,
         reducedMotion: prefersReducedMotion,
       }))
     }
@@ -77,12 +75,7 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
     html.classList.remove("font-normal", "font-large", "font-extra-large")
     html.classList.add(`font-${settings.fontSize}`)
 
-    // Dark mode
-    if (settings.darkMode) {
-      html.classList.add("dark")
-    } else {
-      html.classList.remove("dark")
-    }
+
 
     // Reduced motion
     if (settings.reducedMotion) {
@@ -133,13 +126,22 @@ interface AccessibilityPanelProps {
 
 export function AccessibilityPanel({ isOpen, onClose }: AccessibilityPanelProps) {
   const { settings, updateSettings, resetSettings } = useAccessibility()
+  const { theme, setTheme, resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  // Avoid hydration mismatch
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   if (!isOpen) return null
+  if (!mounted) return null
+
 
   return (
     <>
-      <div 
-        className="fixed inset-0 bg-black/50 z-40" 
+      <div
+        className="fixed inset-0 bg-black/50 z-40"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -157,17 +159,17 @@ export function AccessibilityPanel({ isOpen, onClose }: AccessibilityPanelProps)
           {/* Dark Mode */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              {settings.darkMode ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+              {resolvedTheme === "dark" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
               <Label htmlFor="dark-mode">Dark Mode</Label>
             </div>
             <Button
               id="dark-mode"
-              variant={settings.darkMode ? "default" : "outline"}
+              variant={resolvedTheme === "dark" ? "default" : "outline"}
               size="sm"
-              onClick={() => updateSettings({ darkMode: !settings.darkMode })}
-              aria-pressed={settings.darkMode}
+              onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+              aria-pressed={resolvedTheme === "dark"}
             >
-              {settings.darkMode ? "On" : "Off"}
+              {resolvedTheme === "dark" ? "On" : "Off"}
             </Button>
           </div>
 
@@ -246,9 +248,9 @@ export function AccessibilityPanel({ isOpen, onClose }: AccessibilityPanelProps)
 
           {/* Reset */}
           <div className="pt-2 border-t">
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={resetSettings}
               className="w-full text-muted-foreground"
             >

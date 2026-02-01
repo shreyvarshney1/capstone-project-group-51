@@ -109,7 +109,7 @@ export default function LandingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
       {/* Hero Section */}
       <section className="relative overflow-hidden py-20 md:py-32">
         <div className="absolute inset-0 bg-grid-pattern opacity-5" />
@@ -125,11 +125,11 @@ export default function LandingPage() {
               CivicConnect
             </h1>
 
-            <p className="text-xl md:text-2xl text-gray-700 mb-4 font-medium">
+            <p className="text-xl md:text-2xl text-gray-700 dark:text-gray-200 mb-4 font-medium">
               A Unified Digital Platform for Hierarchical Civil Grievance Management
             </p>
 
-            <p className="text-md md:text-lg text-gray-600 mb-8 max-w-3xl mx-auto">
+            <p className="text-md md:text-lg text-gray-600 dark:text-gray-400 mb-8 max-w-3xl mx-auto">
               Bridging the gap between citizens and government with AI-powered routing,
               community-driven prioritization, and real-time transparency
             </p>
@@ -224,10 +224,10 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900 dark:text-white">
               Why Choose CivicConnect?
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
               A comprehensive platform designed for modern governance with cutting-edge technology
             </p>
           </motion.div>
@@ -240,14 +240,14 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow border border-gray-100"
+                className="bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow border border-gray-100 dark:border-gray-800"
               >
                 <div className={`${feature.bgColor} w-16 h-16 rounded-xl flex items-center justify-center mb-6`}>
                   <feature.icon className={`h-8 w-8 ${feature.color}`} />
                 </div>
 
-                <h3 className="text-xl font-bold mb-3 text-gray-900">{feature.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+                <h3 className="text-xl font-bold mb-3 text-gray-900 dark:text-white">{feature.title}</h3>
+                <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{feature.description}</p>
               </motion.div>
             ))}
           </div>
@@ -255,7 +255,7 @@ export default function LandingPage() {
       </section>
 
       {/* Advantages Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-950/50">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <motion.div
@@ -263,10 +263,10 @@ export default function LandingPage() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-4xl font-bold mb-6 text-gray-900">
+              <h2 className="text-4xl font-bold mb-6 text-gray-900 dark:text-white">
                 Measurable Impact on Governance
               </h2>
-              <p className="text-lg text-gray-600 mb-8">
+              <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
                 CivicConnect delivers quantifiable improvements over traditional grievance systems
               </p>
 
@@ -281,7 +281,7 @@ export default function LandingPage() {
                     className="flex items-start gap-3"
                   >
                     <CheckCircle2 className="h-6 w-6 text-green-500 flex-shrink-0 mt-0.5" />
-                    <span className="text-gray-700">{advantage}</span>
+                    <span className="text-gray-700 dark:text-gray-300">{advantage}</span>
                   </motion.div>
                 ))}
               </div>
@@ -291,42 +291,42 @@ export default function LandingPage() {
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="bg-white p-8 rounded-2xl shadow-xl"
+              className="bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-xl"
             >
-              <h3 className="text-2xl font-bold mb-6 text-gray-900">Performance Comparison</h3>
+              <h3 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Performance Comparison</h3>
 
               <div className="space-y-6">
                 <div>
                   <div className="flex justify-between mb-2">
-                    <span className="text-gray-700 font-medium">Resolution Rate</span>
+                    <span className="text-gray-700 dark:text-gray-300 font-medium">Resolution Rate</span>
                     <span className="text-green-600 font-bold">95%</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-3">
                     <div className="bg-gradient-to-r from-green-500 to-green-600 h-3 rounded-full" style={{ width: '95%' }} />
                   </div>
-                  <div className="text-sm text-gray-500 mt-1">vs CPGRAMS: 90.5%</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">vs CPGRAMS: 90.5%</div>
                 </div>
 
                 <div>
                   <div className="flex justify-between mb-2">
-                    <span className="text-gray-700 font-medium">Avg. Resolution Time</span>
+                    <span className="text-gray-700 dark:text-gray-300 font-medium">Avg. Resolution Time</span>
                     <span className="text-blue-600 font-bold">12 days</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-3">
                     <div className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full" style={{ width: '57%' }} />
                   </div>
-                  <div className="text-sm text-gray-500 mt-1">vs CPGRAMS: 21 days (43% faster)</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">vs CPGRAMS: 21 days (43% faster)</div>
                 </div>
 
                 <div>
                   <div className="flex justify-between mb-2">
-                    <span className="text-gray-700 font-medium">User Satisfaction</span>
+                    <span className="text-gray-700 dark:text-gray-300 font-medium">User Satisfaction</span>
                     <span className="text-purple-600 font-bold">4.5/5</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-3">
                     <div className="bg-gradient-to-r from-purple-500 to-purple-600 h-3 rounded-full" style={{ width: '90%' }} />
                   </div>
-                  <div className="text-sm text-gray-500 mt-1">vs CPGRAMS: 3.2/5 (41% higher)</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">vs CPGRAMS: 3.2/5 (41% higher)</div>
                 </div>
               </div>
             </motion.div>

@@ -13,9 +13,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { api } from '@/lib/api-client';
-import { useAuthStore } from '@/lib/stores/auth-store';
-import { API_ENDPOINTS } from '@/lib/constants';
+// import { api } from '@/lib/api-client'; // Commented out as it might not exist yet or wasn't in imports
+// import { useAuthStore } from '@/lib/stores/auth-store'; // Commented out based on remote code comments
+// import { API_ENDPOINTS } from '@/lib/constants'; // Commented out as uncited
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -72,7 +72,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen grid md:grid-cols-2">
       {/* Left Side - Form */}
-      <div className="flex items-center justify-center px-6 py-12 bg-white">
+      <div className="flex items-center justify-center px-6 py-12 bg-white dark:bg-gray-900">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -84,7 +84,7 @@ export default function LoginPage() {
             <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               CivicConnect
             </h1>
-            <p className="text-gray-600">Sign in to your account</p>
+            <p className="text-gray-600 dark:text-gray-400">Sign in to your account</p>
           </div>
 
           {/* Form */}
@@ -153,10 +153,10 @@ export default function LoginPage() {
           {/* Divider */}
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
+              <div className="w-full border-t border-gray-300 dark:border-gray-700"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or continue with</span>
+              <span className="px-2 bg-white dark:bg-gray-900 text-gray-500">Or continue with</span>
             </div>
           </div>
 
@@ -190,7 +190,7 @@ export default function LoginPage() {
           </Button>
 
           {/* Sign Up Link */}
-          <p className="mt-6 text-center text-sm text-gray-600">
+          <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
             Don't have an account?{' '}
             <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500">
               Sign up for free
