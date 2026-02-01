@@ -166,12 +166,12 @@ export function AccessibilityPanel({
   return createPortal(
     <>
       <div
-        className="fixed inset-0 bg-black/50 z-[1999]"
+        className="fixed inset-0 bg-black/50 z-1999"
         onClick={onClose}
         aria-hidden="true"
       />
       <Card
-        className="fixed right-4 top-20 w-80 z-[2000] shadow-xl"
+        className="fixed right-4 top-20 w-80 z-2000 shadow-xl"
         role="dialog"
         aria-label="Accessibility Settings"
       >
