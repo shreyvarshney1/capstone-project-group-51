@@ -1,381 +1,396 @@
-// Type definitions for CivicConnect Platform
+// =============================================
+// TYPE DEFINITIONS FOR CIVICCONNECT
+// =============================================
 
-export type ComplaintStatus = 'submitted' | 'acknowledged' | 'in_progress' | 'resolved' | 'escalated' | 'closed' | 'rejected';
+import { 
+  Issue, 
+  User, 
+  Category, 
+  Comment, 
+  Vote, 
+  Notification,
+  AuditLog,
+  Status,
+  Priority,
+  Role,
+  EscalationLevel,
+  SubmissionMode,
+  NotificationType,
+  NotificationChannel
+} from "@prisma/client"
 
-export type UserRole = 'citizen' | 'ward_officer' | 'district_admin' | 'state_admin';
+// =============================================
+// EXTENDED ISSUE TYPES
+// =============================================
 
-export type ComplaintCategory =
-    | 'service_delivery'
-    | 'infrastructure'
-    | 'public_welfare'
-    | 'administrative'
-    | 'utilities'
-    | 'health_sanitation'
-    | 'education'
-    | 'transport'
-    | 'environment'
-    | 'police'
-    | 'corruption'
-    | 'rural_development'
-    | 'taxation'
-    | 'housing'
-    | 'other';
-
-export interface User {
-    user_id: string;
-    email: string;
-    phone?: string;
-    name: string;
-    role: UserRole;
-    avatar?: string;
-    location?: {
-        lat: number;
-        lng: number;
-    };
-    created_at: string;
-    updated_at?: string;
-    preferences?: {
-        language: string;
-        notifications: {
-            email: boolean;
-            sms: boolean;
-            push: boolean;
-        };
-        theme: 'light' | 'dark' | 'system';
-    };
-    metadata?: {
-        total_complaints?: number;
-        resolved_complaints?: number;
-        total_votes?: number;
-        total_comments?: number;
-    };
+export interface IssueWithRelations extends Issue {
+  category: Category
+  user: {
+    id: string
+    name: string | null
+    image: string | null
+  }
+  assignedOfficer?: {
+    id: string
+    name: string | null
+    image: string | null
+  } | null
+  votes?: Vote[]
+  comments?: CommentWithUser[]
+  _count?: {
+    votes: number
+    comments: number
+  }
 }
 
-export interface Location {
-    lat: number;
-    lng: number;
-    address?: {
-        street?: string;
-        city: string;
-        state: string;
-        pincode: string;
-        country?: string;
-    };
-    landmark?: string;
+export interface IssueListItem {
+  id: string
+  title: string
+  status: Status
+  priority: Priority
+  category: {
+    name: string
+    color?: string | null
+    icon?: string | null
+  }
+  latitude: number
+  longitude: number
+  address?: string | null
+  voteCount: number
+  isUrgent: boolean
+  createdAt: Date
+  user: {
+    name: string | null
+  }
 }
 
-export interface Complaint {
-    complaint_id: string;
-    user_id: string;
-    user?: User;
-    title: string;
-    description: string;
-    category: ComplaintCategory;
-    sub_category?: string;
-    location: Location;
-    images?: string[];
-    status: ComplaintStatus;
-    priority: number;
-    assigned_officer_id?: string;
-    assigned_officer?: Officer;
-    escalation_level: number;
-    is_public: boolean;
-    is_urgent: boolean;
-    metadata?: Record<string, any>;
-    created_at: string;
-    updated_at?: string;
-    acknowledged_at?: string;
-    resolved_at?: string;
-    resolution_notes?: string;
-    votes_count?: number;
-    comments_count?: number;
-    has_voted?: boolean; // For current user
+export interface IssueFilters {
+  status?: Status[]
+  priority?: Priority[]
+  category?: string[]
+  ward?: string
+  district?: string
+  state?: string
+  dateFrom?: Date
+  dateTo?: Date
+  isUrgent?: boolean
+  assignedToMe?: boolean
+  escalationLevel?: EscalationLevel
 }
 
-export interface Officer {
-    officer_id: string;
-    name: string;
-    designation: string;
-    department: string;
-    contact: string;
-    email?: string;
-    location?: Location;
-    current_workload: number;
-    max_workload: number;
-    status: 'active' | 'inactive' | 'on_leave';
-    jurisdiction: {
-        level: 'ward' | 'block' | 'district' | 'state';
-        area: string;
-        categories: ComplaintCategory[];
-    };
-    performance?: {
-        total_assigned: number;
-        total_resolved: number;
-        avg_resolution_time: number; // in days
-        rating: number; // 0-5
-    };
+// =============================================
+// COMMUNITY ENGAGEMENT TYPES
+// =============================================
+
+export interface CommentWithUser extends Comment {
+  user: {
+    id: string
+    name: string | null
+    image: string | null
+  }
+  replies?: CommentWithUser[]
 }
 
-export interface Comment {
-    comment_id: string;
-    complaint_id: string;
-    user_id: string;
-    user?: User;
-    content: string;
-    is_officer: boolean;
-    created_at: string;
-    updated_at?: string;
+export interface PublicFeedItem {
+  id: string
+  title: string
+  description: string
+  status: Status
+  category: {
+    name: string
+    color?: string | null
+  }
+  ward?: string | null
+  district?: string | null
+  voteCount: number
+  commentCount: number
+  createdAt: Date
+  hasVoted?: boolean
 }
 
-export interface Vote {
-    vote_id: string;
-    complaint_id: string;
-    user_id: string;
-    vote_type: 'priority' | 'similar_issue';
-    created_at: string;
-}
-
-export interface Escalation {
-    escalation_id: string;
-    complaint_id: string;
-    from_officer_id?: string;
-    to_officer_id: string;
-    from_officer?: Officer;
-    to_officer?: Officer;
-    reason: string;
-    escalation_level: number;
-    created_at: string;
-}
-
-export interface Notification {
-    notification_id: string;
-    user_id: string;
-    type: string;
-    title: string;
-    message: string;
-    data?: Record<string, any>;
-    is_read: boolean;
-    created_at: string;
-}
-
-export interface ActivityLog {
-    log_id: string;
-    complaint_id: string;
-    user_id?: string;
-    user?: User;
-    action: 'created' | 'updated' | 'escalated' | 'resolved' | 'commented' | 'voted';
-    old_value?: any;
-    new_value?: any;
-    ip_address?: string;
-    user_agent?: string;
-    created_at: string;
-}
-
-// Analytics Types
-export interface DashboardMetrics {
-    total_complaints: number;
-    resolved_complaints: number;
-    pending_complaints: number;
-    in_progress_complaints: number;
-    avg_resolution_time: number; // in days
-    resolution_rate: number; // percentage
-    active_users: number;
-    complaints_today: number;
-    complaints_this_week: number;
-    complaints_this_month: number;
-}
-
-export interface CategoryStats {
-    category: string;
-    count: number;
-    resolved: number;
-    pending: number;
-    avg_resolution_time: number;
-}
-
-export interface LocationStats {
-    city: string;
-    state: string;
-    count: number;
-    coordinates: {
-        lat: number;
-        lng: number;
-    };
-}
-
-export interface OfficerPerformance {
-    officer_id: string;
-    officer_name: string;
-    department: string;
-    total_assigned: number;
-    total_resolved: number;
-    total_pending: number;
-    avg_resolution_time: number;
-    resolution_rate: number;
-    current_workload: number;
-    rating: number;
-}
-
-export interface TrendData {
-    date: string;
-    complaints: number;
-    resolved: number;
-    pending: number;
-}
+// =============================================
+// HEATMAP & GEOSPATIAL TYPES
+// =============================================
 
 export interface HeatmapPoint {
-    complaint_id: string;
-    lat: number;
-    lng: number;
-    category: ComplaintCategory;
-    status: ComplaintStatus;
-    priority: number;
-    title: string;
-    created_at: string;
+  lat: number
+  lng: number
+  intensity: number
 }
 
-// Form Types
-export interface ComplaintFormData {
-    title: string;
-    description: string;
-    category: ComplaintCategory;
-    sub_category?: string;
-    location: {
-        lat: number;
-        lng: number;
-    };
-    address?: {
-        street?: string;
-        city: string;
-        state: string;
-        pincode: string;
-    };
-    landmark?: string;
-    images?: File[];
-    is_urgent: boolean;
-    is_public: boolean;
+export interface ClusterData {
+  id: string
+  latitude: number
+  longitude: number
+  count: number
+  issues: {
+    id: string
+    title: string
+    status: Status
+    category: string
+  }[]
 }
 
-export interface LoginFormData {
-    email: string;
-    password: string;
+export interface GeoLocation {
+  latitude: number
+  longitude: number
+  accuracy?: number
+  address?: string
+  ward?: string
+  block?: string
+  district?: string
+  state?: string
+  pincode?: string
 }
 
-export interface RegisterFormData {
-    email: string;
-    password: string;
-    confirm_password: string;
-    name: string;
-    phone: string;
-    agree_terms: boolean;
+// =============================================
+// OFFICER DASHBOARD TYPES
+// =============================================
+
+export interface KanbanColumn {
+  id: Status
+  title: string
+  issues: IssueWithRelations[]
 }
 
-export interface ProfileUpdateData {
-    name?: string;
-    phone?: string;
-    email?: string;
-    avatar?: File;
-    preferences?: {
-        language?: string;
-        notifications?: {
-            email?: boolean;
-            sms?: boolean;
-            push?: boolean;
-        };
-        theme?: 'light' | 'dark' | 'system';
-    };
+export interface OfficerStats {
+  totalAssigned: number
+  pendingCount: number
+  inProgressCount: number
+  resolvedToday: number
+  averageResolutionTime: number
+  slaBreachRisk: number
+  slaBreached: number
 }
 
-// API Response Types
-export interface ApiResponse<T> {
-    success: boolean;
-    data?: T;
-    error?: {
-        message: string;
-        code?: string;
-        details?: any;
-    };
-    meta?: {
-        timestamp: string;
-        request_id: string;
-        pagination?: {
-            page: number;
-            limit: number;
-            total: number;
-            total_pages: number;
-        };
-    };
+export interface PerformanceMetrics {
+  userId: string
+  userName: string
+  totalResolved: number
+  averageResolutionTime: number
+  satisfactionRating: number
+  slaComplianceRate: number
+  currentWorkload: number
 }
+
+// =============================================
+// ANALYTICS TYPES
+// =============================================
+
+export interface DashboardAnalytics {
+  totalIssues: number
+  resolvedIssues: number
+  pendingIssues: number
+  averageResolutionTime: number
+  categoryBreakdown: CategoryBreakdown[]
+  trendData: TrendDataPoint[]
+  heatmapData: HeatmapPoint[]
+  slaCompliance: number
+}
+
+export interface CategoryBreakdown {
+  category: string
+  count: number
+  percentage: number
+  color?: string
+}
+
+export interface TrendDataPoint {
+  date: string
+  submitted: number
+  resolved: number
+}
+
+export interface PredictiveData {
+  date: string
+  predictedVolume: number
+  category?: string
+  ward?: string
+  confidence: number
+}
+
+// =============================================
+// NOTIFICATION TYPES
+// =============================================
+
+export interface NotificationPreferences {
+  email: boolean
+  sms: boolean
+  push: boolean
+  whatsapp: boolean
+  statusUpdates: boolean
+  comments: boolean
+  votes: boolean
+  escalations: boolean
+}
+
+export interface NotificationPayload {
+  type: NotificationType
+  title: string
+  message: string
+  data?: Record<string, unknown>
+  channels: NotificationChannel[]
+}
+
+// =============================================
+// AI/ML TYPES
+// =============================================
+
+export interface ClassificationResult {
+  category: string
+  confidence: number
+  suggestedCategories: {
+    category: string
+    confidence: number
+  }[]
+}
+
+export interface DuplicateCheckResult {
+  isDuplicate: boolean
+  confidence: number
+  matchingIssues: {
+    id: string
+    title: string
+    similarity: number
+    distance?: number
+  }[]
+}
+
+export interface PriorityScoreResult {
+  score: number
+  factors: {
+    sentiment: number
+    communityVotes: number
+    categoryWeight: number
+    ageWeight: number
+  }
+}
+
+// =============================================
+// ACCESSIBILITY & LOCALIZATION
+// =============================================
+
+export type SupportedLanguage = 
+  | "en" // English
+  | "hi" // Hindi
+  | "ta" // Tamil
+  | "te" // Telugu
+  | "bn" // Bengali
+  | "mr" // Marathi
+  | "gu" // Gujarati
+  | "kn" // Kannada
+  | "ml" // Malayalam
+  | "pa" // Punjabi
+  | "or" // Odia
+
+export interface AccessibilitySettings {
+  highContrastMode: boolean
+  fontSize: "SMALL" | "MEDIUM" | "LARGE" | "EXTRA_LARGE"
+  screenReaderOptimized: boolean
+  reduceMotion: boolean
+}
+
+export interface LocalizedString {
+  en: string
+  hi?: string
+  ta?: string
+  te?: string
+  bn?: string
+  mr?: string
+  gu?: string
+  kn?: string
+  ml?: string
+  pa?: string
+  or?: string
+}
+
+// =============================================
+// OFFLINE SYNC TYPES
+// =============================================
+
+export interface OfflineDraftData {
+  title: string
+  description: string
+  categoryId: string
+  latitude: number
+  longitude: number
+  address?: string
+  imageBase64?: string
+  voiceNoteBase64?: string
+  createdAt: string
+}
+
+export interface SyncResult {
+  success: boolean
+  issueId?: string
+  error?: string
+}
+
+// =============================================
+// EXTERNAL INTEGRATION TYPES
+// =============================================
+
+export interface CPGRAMSData {
+  registrationNumber: string
+  status: string
+  ministry: string
+  department: string
+  receivedDate: string
+  lastActionDate: string
+}
+
+export interface StatePortalData {
+  portalName: string
+  referenceNumber: string
+  status: string
+  department: string
+}
+
+// =============================================
+// EXPORT TYPES
+// =============================================
+
+export interface ExportOptions {
+  format: "pdf" | "excel" | "csv"
+  dateRange?: {
+    from: Date
+    to: Date
+  }
+  includeComments?: boolean
+  includeStatusHistory?: boolean
+  anonymize?: boolean
+}
+
+// =============================================
+// API RESPONSE TYPES
+// =============================================
 
 export interface PaginatedResponse<T> {
-    data: T[];
-    pagination: {
-        page: number;
-        limit: number;
-        total: number;
-        total_pages: number;
-    };
+  data: T[]
+  pagination: {
+    page: number
+    pageSize: number
+    totalCount: number
+    totalPages: number
+    hasNext: boolean
+    hasPrevious: boolean
+  }
 }
 
-// Filter Types
-export interface ComplaintFilters {
-    status?: ComplaintStatus | ComplaintStatus[];
-    category?: ComplaintCategory | ComplaintCategory[];
-    priority?: 'low' | 'medium' | 'high' | 'critical';
-    date_from?: string;
-    date_to?: string;
-    location?: {
-        lat: number;
-        lng: number;
-        radius: number; // in kilometers
-    };
-    search?: string;
-    assigned_officer_id?: string;
-    user_id?: string;
-    is_public?: boolean;
-    is_urgent?: boolean;
-    escalation_level?: number;
+export interface ApiResponse<T> {
+  success: boolean
+  data?: T
+  error?: string
+  message?: string
 }
 
-export interface ComplaintSort {
-    sort_by?: 'created_at' | 'updated_at' | 'priority' | 'votes_count';
-    order?: 'asc' | 'desc';
-}
-
-// WebSocket Types
-export interface WebSocketMessage {
-    event: string;
-    data: any;
-    timestamp: string;
-}
-
-export interface ComplaintUpdateMessage {
-    complaint_id: string;
-    field: string;
-    old_value: any;
-    new_value: any;
-    updated_by: string;
-}
-
-// Export/Report Types
-export interface ExportOptions {
-    format: 'pdf' | 'excel' | 'csv';
-    filters?: ComplaintFilters;
-    columns?: string[];
-    date_range?: {
-        from: string;
-        to: string;
-    };
-}
-
-// Chart Data Types
-export interface ChartData {
-    labels: string[];
-    datasets: {
-        label: string;
-        data: number[];
-        backgroundColor?: string | string[];
-        borderColor?: string | string[];
-        fill?: boolean;
-    }[];
+// Re-export Prisma enums for convenience
+export { 
+  Status, 
+  Priority, 
+  Role, 
+  EscalationLevel, 
+  SubmissionMode, 
+  NotificationType, 
+  NotificationChannel 
 }
