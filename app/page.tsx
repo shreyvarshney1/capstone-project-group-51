@@ -417,7 +417,7 @@ export default function LandingPage() {
               <Button
                 size="lg"
                 variant="outline"
-                className="text-lg px-8 py-3 text-primary-background border-primary-foreground/30 hover:bg-primary-foreground/10"
+                className="text-lg px-8 py-3 bg-transparent dark:bg-transparent text-primary-foreground border-primary-foreground/30 hover:bg-primary-foreground/10"
                 asChild
               >
                 <Link href="/map">View Heat Map</Link>
