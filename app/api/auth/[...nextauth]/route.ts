@@ -3,6 +3,7 @@ import GoogleProvider from "next-auth/providers/google"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
+import bcrypt from "bcryptjs"
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -10,6 +11,53 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+    }),
+    // Email/Password credentials provider
+    CredentialsProvider({
+      id: "credentials",
+      name: "Credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          return null
+        }
+
+        const user = await prisma.user.findUnique({
+          where: { email: credentials.email },
+        })
+
+        if (!user || !user.password) {
+          return null
+        }
+
+        const isPasswordValid = await bcrypt.compare(
+          credentials.password,
+          user.password
+        )
+
+        if (!isPasswordValid) {
+          return null
+        }
+
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          image: user.image,
+          role: user.role,
+          wardId: user.wardId ?? undefined,
+          blockId: user.blockId ?? undefined,
+          districtId: user.districtId ?? undefined,
+          stateId: user.stateId ?? undefined,
+          preferredLanguage: user.preferredLanguage ?? undefined,
+          accessibilityMode: user.accessibilityMode ?? undefined,
+          highContrastMode: user.highContrastMode ?? undefined,
+          fontSize: user.fontSize ?? undefined,
+        }
+      },
     }),
     // DigiLocker/Aadhaar provider placeholder
     CredentialsProvider({
@@ -53,21 +101,36 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   session: {
-    strategy: "database",
+    strategy: "jwt",
   },
   callbacks: {
-    session: async ({ session, user }) => {
+    jwt: async ({ token, user }) => {
+      if (user) {
+        token.id = user.id
+        token.role = user.role
+        token.wardId = user.wardId
+        token.blockId = user.blockId
+        token.districtId = user.districtId
+        token.stateId = user.stateId
+        token.preferredLanguage = user.preferredLanguage
+        token.accessibilityMode = user.accessibilityMode
+        token.highContrastMode = user.highContrastMode
+        token.fontSize = user.fontSize
+      }
+      return token
+    },
+    session: async ({ session, token }) => {
       if (session?.user) {
-        session.user.id = user.id
-        session.user.role = user.role
-        session.user.wardId = user.wardId ?? undefined
-        session.user.blockId = user.blockId ?? undefined
-        session.user.districtId = user.districtId ?? undefined
-        session.user.stateId = user.stateId ?? undefined
-        session.user.preferredLanguage = user.preferredLanguage ?? undefined
-        session.user.accessibilityMode = user.accessibilityMode ?? undefined
-        session.user.highContrastMode = user.highContrastMode ?? undefined
-        session.user.fontSize = user.fontSize ?? undefined
+        session.user.id = token.id as string
+        session.user.role = token.role as any
+        session.user.wardId = token.wardId as string | undefined
+        session.user.blockId = token.blockId as string | undefined
+        session.user.districtId = token.districtId as string | undefined
+        session.user.stateId = token.stateId as string | undefined
+        session.user.preferredLanguage = token.preferredLanguage as string | undefined
+        session.user.accessibilityMode = token.accessibilityMode as boolean | undefined
+        session.user.highContrastMode = token.highContrastMode as boolean | undefined
+        session.user.fontSize = token.fontSize as string | undefined
       }
       return session
     },

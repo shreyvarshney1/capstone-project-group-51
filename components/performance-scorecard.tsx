@@ -4,11 +4,11 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Clock, 
-  CheckCircle, 
+import {
+  TrendingUp,
+  TrendingDown,
+  Clock,
+  CheckCircle,
   AlertTriangle,
   Users,
   Target,
@@ -64,7 +64,36 @@ export function PerformanceScorecard({
       const response = await fetch(`/api/analytics?type=performance&${params}`)
       if (response.ok) {
         const data = await response.json()
-        setStats(data)
+
+        if (Array.isArray(data)) {
+          // Aggregate data from array to match OfficerStats interface
+          const count = data.length
+          if (count === 0) {
+            setStats(null)
+            return
+          }
+
+          const aggregated = data.reduce((acc: any, curr: any) => ({
+            resolved: acc.resolved + (curr.totalResolved || 0),
+            pending: acc.pending + (curr.currentWorkload || 0),
+            avgTimeSum: acc.avgTimeSum + (curr.averageResolutionTime || 0),
+            slaSum: acc.slaSum + (curr.slaComplianceRate || 0),
+            ratingSum: acc.ratingSum + (curr.satisfactionRating || 0),
+          }), { resolved: 0, pending: 0, avgTimeSum: 0, slaSum: 0, ratingSum: 0 })
+
+          setStats({
+            totalAssigned: aggregated.resolved + aggregated.pending,
+            resolved: aggregated.resolved,
+            pending: aggregated.pending,
+            averageResolutionTime: aggregated.avgTimeSum / count,
+            slaCompliance: aggregated.slaSum / count,
+            escalationRate: 0, // Not available in API currently
+            citizenRating: aggregated.ratingSum / count || 0,
+            trend: "stable", // Not available in API currently
+          })
+        } else {
+          setStats(data)
+        }
       }
     } catch (error) {
       console.error("Failed to fetch stats:", error)
@@ -140,8 +169,8 @@ export function PerformanceScorecard({
     )
   }
 
-  const resolutionRate = stats.totalAssigned > 0 
-    ? Math.round((stats.resolved / stats.totalAssigned) * 100) 
+  const resolutionRate = stats.totalAssigned > 0
+    ? Math.round((stats.resolved / stats.totalAssigned) * 100)
     : 0
 
   return (
@@ -236,20 +265,18 @@ export function PerformanceScorecard({
 
           {/* Escalation Rate */}
           <div className="flex items-center gap-3 p-3 rounded-lg border">
-            <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
-              stats.escalationRate <= 10 
-                ? "bg-green-100 dark:bg-green-900/30" 
-                : stats.escalationRate <= 20 
+            <div className={`h-10 w-10 rounded-full flex items-center justify-center ${stats.escalationRate <= 10
+                ? "bg-green-100 dark:bg-green-900/30"
+                : stats.escalationRate <= 20
                   ? "bg-yellow-100 dark:bg-yellow-900/30"
                   : "bg-red-100 dark:bg-red-900/30"
-            }`}>
-              <AlertTriangle className={`h-5 w-5 ${
-                stats.escalationRate <= 10 
-                  ? "text-green-600" 
-                  : stats.escalationRate <= 20 
+              }`}>
+              <AlertTriangle className={`h-5 w-5 ${stats.escalationRate <= 10
+                  ? "text-green-600"
+                  : stats.escalationRate <= 20
                     ? "text-yellow-600"
                     : "text-red-600"
-              }`} />
+                }`} />
             </div>
             <div>
               <div className="text-lg font-semibold">{stats.escalationRate}%</div>
@@ -259,24 +286,22 @@ export function PerformanceScorecard({
 
           {/* Citizen Rating */}
           <div className="flex items-center gap-3 p-3 rounded-lg border">
-            <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
-              stats.citizenRating >= 4 
-                ? "bg-green-100 dark:bg-green-900/30" 
-                : stats.citizenRating >= 3 
+            <div className={`h-10 w-10 rounded-full flex items-center justify-center ${stats.citizenRating >= 4
+                ? "bg-green-100 dark:bg-green-900/30"
+                : stats.citizenRating >= 3
                   ? "bg-yellow-100 dark:bg-yellow-900/30"
                   : "bg-red-100 dark:bg-red-900/30"
-            }`}>
-              <Award className={`h-5 w-5 ${
-                stats.citizenRating >= 4 
-                  ? "text-green-600" 
-                  : stats.citizenRating >= 3 
+              }`}>
+              <Award className={`h-5 w-5 ${stats.citizenRating >= 4
+                  ? "text-green-600"
+                  : stats.citizenRating >= 3
                     ? "text-yellow-600"
                     : "text-red-600"
-              }`} />
+                }`} />
             </div>
             <div>
               <div className="text-lg font-semibold flex items-center gap-1">
-                {stats.citizenRating.toFixed(1)}
+                {stats.citizenRating?.toFixed(1) || "0.0"}
                 <span className="text-xs text-muted-foreground">/5</span>
               </div>
               <div className="text-xs text-muted-foreground">Citizen Rating</div>
@@ -293,14 +318,13 @@ export function PerformanceScorecard({
             </span>
           </div>
           <div className="h-2 rounded-full bg-muted overflow-hidden">
-            <div 
-              className={`h-full rounded-full transition-all ${
-                stats.slaCompliance >= 90 
-                  ? "bg-green-500" 
-                  : stats.slaCompliance >= 70 
+            <div
+              className={`h-full rounded-full transition-all ${stats.slaCompliance >= 90
+                  ? "bg-green-500"
+                  : stats.slaCompliance >= 70
                     ? "bg-yellow-500"
                     : "bg-red-500"
-              }`}
+                }`}
               style={{ width: `${stats.slaCompliance}%` }}
             />
           </div>
