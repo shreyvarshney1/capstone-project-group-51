@@ -1,147 +1,155 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useSession } from "next-auth/react"
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Input } from "@/components/ui/input"
-import { VoteButton } from "@/components/vote-button"
-import { StatusBadge } from "@/components/status-timeline"
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import { VoteButton } from "@/components/vote-button";
+import { StatusBadge } from "@/components/status-timeline";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { 
-  MapPin, 
-  MessageSquare, 
-  Search, 
-  Filter,
+} from "@/components/ui/select";
+import {
+  MapPin,
+  MessageSquare,
+  Search,
   TrendingUp,
   Clock,
   ArrowUp,
   Loader2,
-  ChevronDown
-} from "lucide-react"
-import { formatDistanceToNow } from "date-fns"
-import Link from "next/link"
+  ChevronDown,
+} from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import Link from "next/link";
 
 interface FeedIssue {
-  id: string
-  title: string
-  description: string
-  status: string
-  priority: string
-  isUrgent: boolean
-  images: string[]
-  createdAt: string
+  id: string;
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  isUrgent: boolean;
+  images: string[];
+  createdAt: string;
   category: {
-    name: string
-  }
-  reporter: {
-    name: string
-    image?: string
-  }
+    name: string;
+  };
+  user: {
+    name: string;
+    image?: string;
+  };
   ward?: {
-    name: string
-  }
-  _count: {
-    votes: number
-    comments: number
-  }
-  hasVoted?: boolean
+    name: string;
+  };
+  voteCount: number;
+  commentCount: number;
+  hasVoted?: boolean;
 }
 
 interface Category {
-  id: string
-  name: string
+  id: string;
+  name: string;
 }
 
-type SortOption = "recent" | "votes" | "trending"
+type SortOption = "recent" | "votes" | "trending";
 
 export default function FeedPage() {
-  const { data: session } = useSession()
-  const [issues, setIssues] = useState<FeedIssue[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [hasMore, setHasMore] = useState(true)
-  const [page, setPage] = useState(1)
-  
+  const { data: session } = useSession();
+  const [issues, setIssues] = useState<FeedIssue[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
+
   // Filters
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState<string>("")
-  const [sortBy, setSortBy] = useState<SortOption>("recent")
-  const [selectedStatus, setSelectedStatus] = useState<string>("")
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [sortBy, setSortBy] = useState<SortOption>("recent");
+  const [selectedStatus, setSelectedStatus] = useState<string>("");
 
   useEffect(() => {
-    fetchCategories()
-  }, [])
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
-    setPage(1)
-    setIssues([])
-    fetchIssues(1, true)
-  }, [searchQuery, selectedCategory, sortBy, selectedStatus])
+    setPage(1);
+    setIssues([]);
+    fetchIssues(1, true);
+  }, [searchQuery, selectedCategory, sortBy, selectedStatus]);
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch("/api/categories")
+      const response = await fetch("/api/categories");
       if (response.ok) {
-        const data = await response.json()
-        setCategories(data)
+        const data = await response.json();
+        setCategories(data);
       }
     } catch (error) {
-      console.error("Failed to fetch categories:", error)
+      console.error("Failed to fetch categories:", error);
     }
-  }
+  };
 
   const fetchIssues = async (pageNum: number, reset: boolean = false) => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       const params = new URLSearchParams({
         page: pageNum.toString(),
         pageSize: "10",
         sortBy,
-      })
+      });
 
-      if (searchQuery) params.set("search", searchQuery)
-      if (selectedCategory) params.set("categoryId", selectedCategory)
-      if (selectedStatus) params.set("status", selectedStatus)
+      if (searchQuery) params.set("search", searchQuery);
+      if (selectedCategory) params.set("categoryId", selectedCategory);
+      if (selectedStatus) params.set("status", selectedStatus);
 
-      const response = await fetch(`/api/feed?${params}`)
+      const response = await fetch(`/api/feed?${params}`);
       if (response.ok) {
-        const data = await response.json()
+        const data = await response.json();
         if (reset) {
-          setIssues(data.data)
+          setIssues(data.data);
         } else {
-          setIssues(prev => [...prev, ...data.data])
+          setIssues((prev) => [...prev, ...data.data]);
         }
-        setHasMore(data.pagination.page < data.pagination.totalPages)
+        setHasMore(data.pagination.page < data.pagination.totalPages);
       }
     } catch (error) {
-      console.error("Failed to fetch issues:", error)
+      console.error("Failed to fetch issues:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const loadMore = () => {
-    const nextPage = page + 1
-    setPage(nextPage)
-    fetchIssues(nextPage)
-  }
+    const nextPage = page + 1;
+    setPage(nextPage);
+    fetchIssues(nextPage);
+  };
 
-  const handleVoteUpdate = (issueId: string, newVoteCount: number, hasVoted: boolean) => {
-    setIssues(prev => prev.map(issue => 
-      issue.id === issueId 
-        ? { ...issue, _count: { ...issue._count, votes: newVoteCount }, hasVoted }
-        : issue
-    ))
-  }
+  const handleVoteUpdate = (
+    issueId: string,
+    newVoteCount: number,
+    hasVoted: boolean,
+  ) => {
+    setIssues((prev) =>
+      prev.map((issue) =>
+        issue.id === issueId
+          ? { ...issue, voteCount: newVoteCount, hasVoted }
+          : issue,
+      ),
+    );
+  };
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -169,13 +177,16 @@ export default function FeedPage() {
             </div>
 
             {/* Category Filter */}
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <Select
+              value={selectedCategory}
+              onValueChange={setSelectedCategory}
+            >
               <SelectTrigger className="w-full md:w-[180px]">
                 <SelectValue placeholder="All Categories" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
-                {categories.map(cat => (
+                {categories.map((cat) => (
                   <SelectItem key={cat.id} value={cat.id}>
                     {cat.name}
                   </SelectItem>
@@ -197,7 +208,10 @@ export default function FeedPage() {
             </Select>
 
             {/* Sort */}
-            <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+            <Select
+              value={sortBy}
+              onValueChange={(v) => setSortBy(v as SortOption)}
+            >
               <SelectTrigger className="w-full md:w-[150px]">
                 <SelectValue />
               </SelectTrigger>
@@ -242,19 +256,26 @@ export default function FeedPage() {
             </CardContent>
           </Card>
         ) : (
-          issues.map(issue => (
-            <Card key={issue.id} className="overflow-hidden hover:shadow-md transition-shadow">
+          issues.map((issue) => (
+            <Card
+              key={issue.id}
+              className="overflow-hidden hover:shadow-md transition-shadow"
+            >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
-                    <Link 
+                    <Link
                       href={`/issues/${issue.id}`}
-                      className="text-lg font-semibold hover:text-primary transition-colors line-clamp-2"
+                      className="text-lg font-semibold hover:text-primary transition-colors line-clamp-2 text-pretty wrap-break-word"
                     >
                       {issue.title}
                     </Link>
                     <div className="flex flex-wrap items-center gap-2 mt-2">
-                      <StatusBadge status={issue.status} isUrgent={issue.isUrgent} size="sm" />
+                      <StatusBadge
+                        status={issue.status}
+                        isUrgent={issue.isUrgent}
+                        size="sm"
+                      />
                       <Badge variant="outline">{issue.category.name}</Badge>
                       {issue.ward && (
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
@@ -266,16 +287,18 @@ export default function FeedPage() {
                   </div>
                   <VoteButton
                     issueId={issue.id}
-                    initialVoteCount={issue._count.votes}
+                    initialVoteCount={issue.voteCount}
                     initialHasVoted={issue.hasVoted || false}
-                    onVoteChange={(votes, hasVoted) => handleVoteUpdate(issue.id, votes, hasVoted)}
+                    onVoteChange={(votes, hasVoted) =>
+                      handleVoteUpdate(issue.id, votes, hasVoted)
+                    }
                     size="lg"
                   />
                 </div>
               </CardHeader>
 
               <CardContent className="pt-0">
-                <p className="text-muted-foreground text-sm line-clamp-3">
+                <p className="text-muted-foreground text-sm line-clamp-3 text-pretty wrap-break-word">
                   {issue.description}
                 </p>
 
@@ -287,11 +310,11 @@ export default function FeedPage() {
                         key={idx}
                         src={img}
                         alt={`Issue image ${idx + 1}`}
-                        className="h-20 w-20 object-cover rounded-md flex-shrink-0"
+                        className="h-20 w-20 object-cover rounded-md shrink-0"
                       />
                     ))}
                     {issue.images.length > 3 && (
-                      <div className="h-20 w-20 bg-muted rounded-md flex items-center justify-center text-sm text-muted-foreground flex-shrink-0">
+                      <div className="h-20 w-20 bg-muted rounded-md flex items-center justify-center text-sm text-muted-foreground shrink-0">
                         +{issue.images.length - 3}
                       </div>
                     )}
@@ -302,26 +325,28 @@ export default function FeedPage() {
               <CardFooter className="border-t pt-3 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-7 w-7">
-                    <AvatarImage src={issue.reporter.image} />
+                    <AvatarImage src={issue.user.image} />
                     <AvatarFallback className="text-xs">
-                      {issue.reporter.name?.charAt(0) || "?"}
+                      {issue.user.name?.charAt(0) || "?"}
                     </AvatarFallback>
                   </Avatar>
                   <div className="text-sm">
-                    <span className="font-medium">{issue.reporter.name}</span>
+                    <span className="font-medium">{issue.user.name}</span>
                     <span className="text-muted-foreground"> · </span>
                     <span className="text-muted-foreground">
-                      {formatDistanceToNow(new Date(issue.createdAt), { addSuffix: true })}
+                      {formatDistanceToNow(new Date(issue.createdAt), {
+                        addSuffix: true,
+                      })}
                     </span>
                   </div>
                 </div>
 
-                <Link 
+                <Link
                   href={`/issues/${issue.id}#comments`}
                   className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <MessageSquare className="h-4 w-4" />
-                  {issue._count.comments}
+                  {issue.commentCount}
                 </Link>
               </CardFooter>
             </Card>
@@ -330,12 +355,8 @@ export default function FeedPage() {
 
         {/* Load More */}
         {hasMore && issues.length > 0 && (
-          <div className="flex justify-center pt-4">
-            <Button
-              variant="outline"
-              onClick={loadMore}
-              disabled={isLoading}
-            >
+          <div className="flex justify-center py-4">
+            <Button variant="outline" onClick={loadMore} disabled={isLoading}>
               {isLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
               ) : (
@@ -347,5 +368,5 @@ export default function FeedPage() {
         )}
       </div>
     </div>
-  )
+  );
 }

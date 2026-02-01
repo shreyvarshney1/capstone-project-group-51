@@ -1,32 +1,28 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
-import { motion } from 'framer-motion';
-import { Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
-// import { api } from '@/lib/api-client'; // Commented out as it might not exist yet or wasn't in imports
-// import { useAuthStore } from '@/lib/stores/auth-store'; // Commented out based on remote code comments
-// import { API_ENDPOINTS } from '@/lib/constants'; // Commented out as uncited
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { motion } from "framer-motion";
+import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
-  // const { setAuth } = useAuthStore(); // Removed as we now sync via providers
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -42,20 +38,20 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const result = await signIn('credentials', {
+      const result = await signIn("credentials", {
         redirect: false,
         email: data.email,
         password: data.password,
       });
 
       if (result?.error) {
-        toast.error('Invalid credentials. Please try again.');
+        toast.error("Invalid credentials. Please try again.");
       } else {
-        toast.success('Login successful! Redirecting...');
-        router.push('/dashboard');
+        toast.success("Login successful! Redirecting...");
+        router.push("/dashboard");
       }
     } catch (error) {
-      toast.error('Login failed. Please try again.');
+      toast.error("Login failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -63,16 +59,16 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = async () => {
     try {
-      await signIn('google', { callbackUrl: '/dashboard' });
+      await signIn("google", { callbackUrl: "/dashboard" });
     } catch (error) {
-      toast.error('Google sign-in failed. Please try again.');
+      toast.error("Google sign-in failed. Please try again.");
     }
   };
 
   return (
     <div className="min-h-screen grid md:grid-cols-2">
       {/* Left Side - Form */}
-      <div className="flex items-center justify-center px-6 py-12 bg-white dark:bg-gray-900">
+      <div className="flex items-center justify-center px-6 py-12 bg-background">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -81,10 +77,10 @@ export default function LoginPage() {
         >
           {/* Logo & Title */}
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold mb-2 bg-linear-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               CivicConnect
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">Sign in to your account</p>
+            <p className="text-muted-foreground">Sign in to your account</p>
           </div>
 
           {/* Form */}
@@ -99,7 +95,7 @@ export default function LoginPage() {
                   type="email"
                   placeholder="your.email@example.com"
                   className="pl-10"
-                  {...register('email')}
+                  {...register("email")}
                 />
               </div>
               {errors.email && (
@@ -114,21 +110,27 @@ export default function LoginPage() {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <Input
                   id="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
                   className="pl-10 pr-10"
-                  {...register('password')}
+                  {...register("password")}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
                 </button>
               </div>
               {errors.password && (
-                <p className="text-sm text-red-500">{errors.password.message}</p>
+                <p className="text-sm text-red-500">
+                  {errors.password.message}
+                </p>
               )}
             </div>
 
@@ -145,7 +147,7 @@ export default function LoginPage() {
                   Signing in...
                 </>
               ) : (
-                'Sign In'
+                "Sign In"
               )}
             </Button>
           </form>
@@ -156,7 +158,9 @@ export default function LoginPage() {
               <div className="w-full border-t border-gray-300 dark:border-gray-700"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white dark:bg-gray-900 text-gray-500">Or continue with</span>
+              <span className="px-2 bg-background text-muted-foreground">
+                Or continue with
+              </span>
             </div>
           </div>
 
@@ -190,9 +194,12 @@ export default function LoginPage() {
           </Button>
 
           {/* Sign Up Link */}
-          <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
-            Don't have an account?{' '}
-            <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500">
+          <p className="mt-6 text-center text-sm text-muted-foreground">
+            Don't have an account?{" "}
+            <Link
+              href="/register"
+              className="font-medium text-primary hover:text-primary/90"
+            >
               Sign up for free
             </Link>
           </p>
@@ -200,7 +207,7 @@ export default function LoginPage() {
       </div>
 
       {/* Right Side - Feature Showcase */}
-      <div className="hidden md:flex items-center justify-center bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white p-12">
+      <div className="hidden md:flex items-center justify-center bg-linear-to-br from-blue-600 via-indigo-600 to-purple-600 text-white p-12">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -222,8 +229,11 @@ export default function LoginPage() {
               </div>
               <div>
                 <h3 className="font-semibold mb-1">Real-time Updates</h3>
-                <p className="text-blue-100">Get instant notifications on your complaint status</p>
-              </div></div>
+                <p className="text-blue-100">
+                  Get instant notifications on your complaint status
+                </p>
+              </div>
+            </div>
 
             <div className="flex items-start gap-4">
               <div className="bg-white/20 p-3 rounded-lg">
@@ -231,7 +241,9 @@ export default function LoginPage() {
               </div>
               <div>
                 <h3 className="font-semibold mb-1">Secure & Private</h3>
-                <p className="text-blue-100">Your data is encrypted and protected</p>
+                <p className="text-blue-100">
+                  Your data is encrypted and protected
+                </p>
               </div>
             </div>
           </div>

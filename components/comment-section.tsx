@@ -1,141 +1,167 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useSession } from "next-auth/react"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { MessageSquare, Reply, Trash2, Loader2 } from "lucide-react"
-import { formatDistanceToNow } from "date-fns"
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { MessageSquare, Reply, Trash2, Loader2 } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 
 interface Comment {
-  id: string
-  content: string
-  createdAt: string | Date
+  id: string;
+  content: string;
+  createdAt: string | Date;
   user: {
-    id: string
-    name: string | null
-    image: string | null
-  }
-  replies?: Comment[]
+    id: string;
+    name: string | null;
+    image: string | null;
+  };
+  replies?: Comment[];
 }
 
 interface CommentSectionProps {
-  issueId: string
-  comments?: Comment[]
-  onCommentAdded?: () => void
+  issueId: string;
+  comments?: Comment[];
+  onCommentAdded?: () => void;
 }
 
-export function CommentSection({ issueId, comments: initialComments, onCommentAdded }: CommentSectionProps) {
-  const { data: session } = useSession()
-  const [comments, setComments] = useState<Comment[]>(initialComments || [])
-  const [newComment, setNewComment] = useState("")
-  const [replyingTo, setReplyingTo] = useState<string | null>(null)
-  const [replyContent, setReplyContent] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isLoading, setIsLoading] = useState(!initialComments)
+export function CommentSection({
+  issueId,
+  comments: initialComments,
+  onCommentAdded,
+}: CommentSectionProps) {
+  const { data: session } = useSession();
+  const [comments, setComments] = useState<Comment[]>(initialComments || []);
+  const [newComment, setNewComment] = useState("");
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyContent, setReplyContent] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(!initialComments);
 
   // Fetch comments if not provided initially
   useEffect(() => {
     if (!initialComments) {
-      fetchComments()
+      fetchComments();
     }
-  }, [issueId, initialComments])
+  }, [issueId, initialComments]);
 
   const fetchComments = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const response = await fetch(`/api/issues/${issueId}/comments`)
+      const response = await fetch(`/api/issues/${issueId}/comments`);
       if (response.ok) {
-        const data = await response.json()
-        setComments(data)
+        const data = await response.json();
+        setComments(data.data || []);
       }
     } catch (error) {
-      console.error("Failed to fetch comments:", error)
+      console.error("Failed to fetch comments:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleSubmitComment = async (parentId?: string) => {
     if (!session) {
-      alert("Please sign in to comment")
-      return
+      alert("Please sign in to comment");
+      return;
     }
 
-    const content = parentId ? replyContent : newComment
-    if (!content.trim()) return
+    const content = parentId ? replyContent : newComment;
+    if (!content.trim()) return;
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
       const response = await fetch(`/api/issues/${issueId}/comments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content, parentId })
-      })
+        body: JSON.stringify({ content, parentId }),
+      });
 
       if (response.ok) {
-        const comment = await response.json()
-        
+        const comment = await response.json();
+
         if (parentId) {
           // Add reply to parent comment
-          setComments(prev => prev.map(c => {
-            if (c.id === parentId) {
-              return { ...c, replies: [...(c.replies || []), comment] }
-            }
-            return c
-          }))
-          setReplyContent("")
-          setReplyingTo(null)
+          setComments((prev) =>
+            prev.map((c) => {
+              if (c.id === parentId) {
+                return { ...c, replies: [...(c.replies || []), comment] };
+              }
+              return c;
+            }),
+          );
+          setReplyContent("");
+          setReplyingTo(null);
         } else {
           // Add new top-level comment
-          setComments(prev => [comment, ...prev])
-          setNewComment("")
+          setComments((prev) => [comment, ...prev]);
+          setNewComment("");
         }
-        
-        onCommentAdded?.()
+
+        onCommentAdded?.();
       }
     } catch (error) {
-      console.error("Comment failed:", error)
+      console.error("Comment failed:", error);
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const handleDeleteComment = async (commentId: string) => {
-    if (!confirm("Are you sure you want to delete this comment?")) return
+    if (!confirm("Are you sure you want to delete this comment?")) return;
 
     try {
-      const response = await fetch(`/api/issues/${issueId}/comments?commentId=${commentId}`, {
-        method: "DELETE"
-      })
+      const response = await fetch(
+        `/api/issues/${issueId}/comments?commentId=${commentId}`,
+        {
+          method: "DELETE",
+        },
+      );
 
       if (response.ok) {
         // Remove from state
-        setComments(prev => prev.filter(c => c.id !== commentId).map(c => ({
-          ...c,
-          replies: c.replies?.filter(r => r.id !== commentId)
-        })))
+        setComments((prev) =>
+          prev
+            .filter((c) => c.id !== commentId)
+            .map((c) => ({
+              ...c,
+              replies: c.replies?.filter((r) => r.id !== commentId),
+            })),
+        );
       }
     } catch (error) {
-      console.error("Delete failed:", error)
+      console.error("Delete failed:", error);
     }
-  }
+  };
 
-  const CommentItem = ({ comment, isReply = false }: { comment: Comment; isReply?: boolean }) => (
+  const CommentItem = ({
+    comment,
+    isReply = false,
+  }: {
+    comment: Comment;
+    isReply?: boolean;
+  }) => (
     <div className={`flex gap-3 ${isReply ? "ml-8 mt-3" : "mb-4"}`}>
-      <Avatar className="h-8 w-8 flex-shrink-0">
-        <AvatarImage src={comment.user.image || ""} alt={comment.user.name || ""} />
+      <Avatar className="h-8 w-8 shrink-0">
+        <AvatarImage
+          src={comment.user.image || ""}
+          alt={comment.user.name || ""}
+        />
         <AvatarFallback>{comment.user.name?.[0] || "?"}</AvatarFallback>
       </Avatar>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
-          <span className="font-medium text-sm">{comment.user.name || "Anonymous"}</span>
+          <span className="font-medium text-sm">
+            {comment.user.name || "Anonymous"}
+          </span>
           <span className="text-xs text-muted-foreground">
-            {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
+            {formatDistanceToNow(new Date(comment.createdAt), {
+              addSuffix: true,
+            })}
           </span>
         </div>
-        <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words">
+        <p className="text-sm text-muted-foreground whitespace-pre-wrap wrap-break-word text-pretty overflow-hidden text-ellipsis">
           {comment.content}
         </p>
         <div className="flex items-center gap-2 mt-2">
@@ -144,7 +170,9 @@ export function CommentSection({ issueId, comments: initialComments, onCommentAd
               variant="ghost"
               size="sm"
               className="h-7 text-xs"
-              onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+              onClick={() =>
+                setReplyingTo(replyingTo === comment.id ? null : comment.id)
+              }
             >
               <Reply className="h-3 w-3 mr-1" />
               Reply
@@ -162,7 +190,7 @@ export function CommentSection({ issueId, comments: initialComments, onCommentAd
             </Button>
           )}
         </div>
-        
+
         {/* Reply input */}
         {replyingTo === comment.id && (
           <div className="mt-3 flex gap-2">
@@ -184,8 +212,8 @@ export function CommentSection({ issueId, comments: initialComments, onCommentAd
                 size="sm"
                 variant="ghost"
                 onClick={() => {
-                  setReplyingTo(null)
-                  setReplyContent("")
+                  setReplyingTo(null);
+                  setReplyContent("");
                 }}
               >
                 Cancel
@@ -193,14 +221,14 @@ export function CommentSection({ issueId, comments: initialComments, onCommentAd
             </div>
           </div>
         )}
-        
+
         {/* Replies */}
-        {comment.replies?.map(reply => (
+        {comment.replies?.map((reply) => (
           <CommentItem key={reply.id} comment={reply} isReply />
         ))}
       </div>
     </div>
-  )
+  );
 
   return (
     <div className="space-y-4">
@@ -212,8 +240,11 @@ export function CommentSection({ issueId, comments: initialComments, onCommentAd
       {/* New comment input */}
       {session ? (
         <div className="flex gap-3 mb-6">
-          <Avatar className="h-8 w-8 flex-shrink-0">
-            <AvatarImage src={session.user?.image || ""} alt={session.user?.name || ""} />
+          <Avatar className="h-8 w-8 shrink-0">
+            <AvatarImage
+              src={session.user?.image || ""}
+              alt={session.user?.name || ""}
+            />
             <AvatarFallback>{session.user?.name?.[0] || "?"}</AvatarFallback>
           </Avatar>
           <div className="flex-1 space-y-2">
@@ -244,7 +275,7 @@ export function CommentSection({ issueId, comments: initialComments, onCommentAd
             No comments yet. Be the first to comment!
           </p>
         ) : (
-          comments.map(comment => (
+          comments.map((comment) => (
             <div key={comment.id} className="py-4 first:pt-0">
               <CommentItem comment={comment} />
             </div>
@@ -252,5 +283,5 @@ export function CommentSection({ issueId, comments: initialComments, onCommentAd
         )}
       </div>
     </div>
-  )
+  );
 }

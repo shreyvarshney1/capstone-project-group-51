@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Table,
   TableBody,
@@ -9,20 +9,26 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import Link from "next/link"
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Link from "next/link";
 import {
   FileText,
   Users,
@@ -37,87 +43,92 @@ import {
   Shield,
   UserCog,
   Download,
-} from "lucide-react"
-import { ExportButton } from "@/components/export-button"
+} from "lucide-react";
+import { ExportButton } from "@/components/export-button";
 
 interface Issue {
-  id: string
-  title: string
-  status: string
-  priority: string
-  createdAt: string
+  id: string;
+  title: string;
+  status: string;
+  priority: string;
+  createdAt: string;
   category: {
-    id: string
-    name: string
-  }
+    id: string;
+    name: string;
+  };
   user: {
-    id: string
-    name: string | null
-    email: string | null
-  }
+    id: string;
+    name: string | null;
+    email: string | null;
+  };
   assignedOfficer?: {
-    id: string
-    name: string | null
-  } | null
-  voteCount: number
+    id: string;
+    name: string | null;
+  } | null;
+  voteCount: number;
 }
 
 interface User {
-  id: string
-  name: string | null
-  email: string | null
-  role: string
-  createdAt: string
+  id: string;
+  name: string | null;
+  email: string | null;
+  role: string;
+  createdAt: string;
   _count: {
-    issues: number
-    assignedIssues: number
-  }
+    issues: number;
+    assignedIssues: number;
+  };
 }
 
 interface Category {
-  id: string
-  name: string
-  description: string | null
+  id: string;
+  name: string;
+  description: string | null;
   _count: {
-    issues: number
-  }
+    issues: number;
+  };
 }
 
 interface AdminDashboardProps {
-  initialIssues: Issue[]
-  users: User[]
-  categories: Category[]
-  statusStats: Record<string, number>
+  initialIssues: Issue[];
+  users: User[];
+  categories: Category[];
+  statusStats: Record<string, number>;
 }
 
-export function AdminDashboard({ 
-  initialIssues, 
-  users, 
+export function AdminDashboard({
+  initialIssues,
+  users,
   categories,
-  statusStats 
+  statusStats,
 }: AdminDashboardProps) {
-  const [issues, setIssues] = useState<Issue[]>(initialIssues)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState<string>("all")
-  const [categoryFilter, setCategoryFilter] = useState<string>("all")
-  const router = useRouter()
+  const [issues, setIssues] = useState<Issue[]>(initialIssues);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const router = useRouter();
 
   // Calculate stats
-  const totalIssues = Object.values(statusStats).reduce((a, b) => a + b, 0)
-  const pendingCount = (statusStats["PENDING"] || 0) + (statusStats["ACKNOWLEDGED"] || 0)
-  const inProgressCount = statusStats["IN_PROGRESS"] || 0
-  const resolvedCount = (statusStats["RESOLVED"] || 0) + (statusStats["CLOSED"] || 0)
-  const escalatedCount = statusStats["ESCALATED"] || 0
+  const totalIssues = Object.values(statusStats).reduce((a, b) => a + b, 0);
+  const pendingCount =
+    (statusStats["PENDING"] || 0) + (statusStats["ACKNOWLEDGED"] || 0);
+  const inProgressCount = statusStats["IN_PROGRESS"] || 0;
+  const resolvedCount =
+    (statusStats["RESOLVED"] || 0) + (statusStats["CLOSED"] || 0);
+  const escalatedCount = statusStats["ESCALATED"] || 0;
 
   // Filter issues
-  const filteredIssues = issues.filter(issue => {
-    const matchesSearch = issue.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  const filteredIssues = issues.filter((issue) => {
+    const matchesSearch =
+      issue.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       issue.user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      issue.user.email?.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesStatus = statusFilter === "all" || issue.status === statusFilter
-    const matchesCategory = categoryFilter === "all" || issue.category.id === categoryFilter
-    return matchesSearch && matchesStatus && matchesCategory
-  })
+      issue.user.email?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus =
+      statusFilter === "all" || issue.status === statusFilter;
+    const matchesCategory =
+      categoryFilter === "all" || issue.category.id === categoryFilter;
+    return matchesSearch && matchesStatus && matchesCategory;
+  });
 
   const handleStatusChange = async (issueId: string, newStatus: string) => {
     try {
@@ -127,24 +138,24 @@ export function AdminDashboard({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ status: newStatus }),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error("Failed to update status")
+        throw new Error("Failed to update status");
       }
 
       setIssues((prev) =>
         prev.map((issue) =>
-          issue.id === issueId ? { ...issue, status: newStatus } : issue
-        )
-      )
-      
-      router.refresh()
+          issue.id === issueId ? { ...issue, status: newStatus } : issue,
+        ),
+      );
+
+      router.refresh();
     } catch (error) {
-      console.error(error)
-      alert("Failed to update issue status")
+      console.error(error);
+      alert("Failed to update issue status");
     }
-  }
+  };
 
   const handleRoleChange = async (userId: string, newRole: string) => {
     try {
@@ -152,18 +163,18 @@ export function AdminDashboard({
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role: newRole }),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error("Failed to update role")
+        throw new Error("Failed to update role");
       }
 
-      router.refresh()
+      router.refresh();
     } catch (error) {
-      console.error(error)
-      alert("Failed to update user role")
+      console.error(error);
+      alert("Failed to update user role");
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -184,7 +195,9 @@ export function AdminDashboard({
             <Clock className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-amber-600">{pendingCount}</div>
+            <div className="text-2xl font-bold text-amber-600">
+              {pendingCount}
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -193,7 +206,9 @@ export function AdminDashboard({
             <TrendingUp className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{inProgressCount}</div>
+            <div className="text-2xl font-bold text-blue-600">
+              {inProgressCount}
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -202,7 +217,9 @@ export function AdminDashboard({
             <CheckCircle2 className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{resolvedCount}</div>
+            <div className="text-2xl font-bold text-green-600">
+              {resolvedCount}
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -211,7 +228,9 @@ export function AdminDashboard({
             <AlertTriangle className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{escalatedCount}</div>
+            <div className="text-2xl font-bold text-red-600">
+              {escalatedCount}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -233,7 +252,11 @@ export function AdminDashboard({
               Categories
             </TabsTrigger>
           </TabsList>
-          <ExportButton endpoint="/api/export" filename="issues-export" variant="outline" />
+          <ExportButton
+            endpoint="/api/export"
+            filename="issues-export"
+            variant="outline"
+          />
         </div>
 
         {/* Issues Tab */}
@@ -270,8 +293,10 @@ export function AdminDashboard({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
-                {categories.map(cat => (
-                  <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                {categories.map((cat) => (
+                  <SelectItem key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -280,77 +305,94 @@ export function AdminDashboard({
           {/* Issues Table */}
           <Card>
             <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Reporter</TableHead>
-                    <TableHead>Officer</TableHead>
-                    <TableHead>Priority</TableHead>
-                    <TableHead>Votes</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredIssues.map((issue) => (
-                    <TableRow key={issue.id}>
-                      <TableCell className="font-medium max-w-[200px] truncate">
-                        {issue.title}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{issue.category.name}</Badge>
-                      </TableCell>
-                      <TableCell className="text-sm">
-                        {issue.user.name || issue.user.email}
-                      </TableCell>
-                      <TableCell className="text-sm">
-                        {issue.assignedOfficer?.name || "-"}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={
-                          issue.priority === "CRITICAL" ? "destructive" :
-                          issue.priority === "HIGH" ? "default" :
-                          "secondary"
-                        }>
-                          {issue.priority || "MEDIUM"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{issue.voteCount}</TableCell>
-                      <TableCell>
-                        <Select
-                          defaultValue={issue.status}
-                          onValueChange={(value) => handleStatusChange(issue.id, value)}
-                        >
-                          <SelectTrigger className="w-[130px] h-8">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="PENDING">Pending</SelectItem>
-                            <SelectItem value="ACKNOWLEDGED">Acknowledged</SelectItem>
-                            <SelectItem value="ASSIGNED">Assigned</SelectItem>
-                            <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                            <SelectItem value="RESOLVED">Resolved</SelectItem>
-                            <SelectItem value="ESCALATED">Escalated</SelectItem>
-                            <SelectItem value="CLOSED">Closed</SelectItem>
-                            <SelectItem value="REJECTED">Rejected</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {new Date(issue.createdAt).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        <Button variant="ghost" size="sm" asChild>
-                          <Link href={`/issues/${issue.id}`}>View</Link>
-                        </Button>
-                      </TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Reporter</TableHead>
+                      <TableHead>Officer</TableHead>
+                      <TableHead>Priority</TableHead>
+                      <TableHead>Votes</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead></TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredIssues.map((issue) => (
+                      <TableRow key={issue.id}>
+                        <TableCell
+                          className="font-medium max-w-[200px] truncate"
+                          title={issue.title}
+                        >
+                          {issue.title}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{issue.category.name}</Badge>
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {issue.user.name || issue.user.email}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {issue.assignedOfficer?.name || "-"}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              issue.priority === "CRITICAL"
+                                ? "destructive"
+                                : issue.priority === "HIGH"
+                                  ? "default"
+                                  : "secondary"
+                            }
+                          >
+                            {issue.priority || "MEDIUM"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{issue.voteCount}</TableCell>
+                        <TableCell>
+                          <Select
+                            defaultValue={issue.status}
+                            onValueChange={(value) =>
+                              handleStatusChange(issue.id, value)
+                            }
+                          >
+                            <SelectTrigger className="w-[130px] h-8">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="PENDING">Pending</SelectItem>
+                              <SelectItem value="ACKNOWLEDGED">
+                                Acknowledged
+                              </SelectItem>
+                              <SelectItem value="ASSIGNED">Assigned</SelectItem>
+                              <SelectItem value="IN_PROGRESS">
+                                In Progress
+                              </SelectItem>
+                              <SelectItem value="RESOLVED">Resolved</SelectItem>
+                              <SelectItem value="ESCALATED">
+                                Escalated
+                              </SelectItem>
+                              <SelectItem value="CLOSED">Closed</SelectItem>
+                              <SelectItem value="REJECTED">Rejected</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {new Date(issue.createdAt).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="sm" asChild>
+                            <Link href={`/issues/${issue.id}`}>View</Link>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -360,60 +402,82 @@ export function AdminDashboard({
           <Card>
             <CardHeader>
               <CardTitle>User Management</CardTitle>
-              <CardDescription>Manage user roles and permissions</CardDescription>
+              <CardDescription>
+                Manage user roles and permissions
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Issues Reported</TableHead>
-                    <TableHead>Issues Assigned</TableHead>
-                    <TableHead>Joined</TableHead>
-                    <TableHead></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {users.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell className="font-medium">
-                        {user.name || "Unnamed"}
-                      </TableCell>
-                      <TableCell>{user.email}</TableCell>
-                      <TableCell>
-                        <Select
-                          defaultValue={user.role}
-                          onValueChange={(value) => handleRoleChange(user.id, value)}
-                        >
-                          <SelectTrigger className="w-[150px] h-8">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="CITIZEN">Citizen</SelectItem>
-                            <SelectItem value="WARD_OFFICER">Ward Officer</SelectItem>
-                            <SelectItem value="BLOCK_OFFICER">Block Officer</SelectItem>
-                            <SelectItem value="DISTRICT_OFFICER">District Officer</SelectItem>
-                            <SelectItem value="STATE_OFFICER">State Officer</SelectItem>
-                            <SelectItem value="ADMIN">Admin</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell>{user._count.issues}</TableCell>
-                      <TableCell>{user._count.assignedIssues}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {new Date(user.createdAt).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Role</TableHead>
+                      <TableHead>Issues Reported</TableHead>
+                      <TableHead>Issues Assigned</TableHead>
+                      <TableHead>Joined</TableHead>
+                      <TableHead></TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {users.map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell
+                          className="font-medium max-w-[150px] truncate"
+                          title={user.name || "Unnamed"}
+                        >
+                          {user.name || "Unnamed"}
+                        </TableCell>
+                        <TableCell
+                          className="max-w-[200px] truncate"
+                          title={user.email || ""}
+                        >
+                          {user.email}
+                        </TableCell>
+                        <TableCell>
+                          <Select
+                            defaultValue={user.role}
+                            onValueChange={(value) =>
+                              handleRoleChange(user.id, value)
+                            }
+                          >
+                            <SelectTrigger className="w-[150px] h-8">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="CITIZEN">Citizen</SelectItem>
+                              <SelectItem value="WARD_OFFICER">
+                                Ward Officer
+                              </SelectItem>
+                              <SelectItem value="BLOCK_OFFICER">
+                                Block Officer
+                              </SelectItem>
+                              <SelectItem value="DISTRICT_OFFICER">
+                                District Officer
+                              </SelectItem>
+                              <SelectItem value="STATE_OFFICER">
+                                State Officer
+                              </SelectItem>
+                              <SelectItem value="ADMIN">Admin</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell>{user._count.issues}</TableCell>
+                        <TableCell>{user._count.assignedIssues}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {new Date(user.createdAt).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="icon">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -425,42 +489,58 @@ export function AdminDashboard({
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle>Issue Categories</CardTitle>
-                  <CardDescription>Manage issue categories and routing rules</CardDescription>
+                  <CardDescription>
+                    Manage issue categories and routing rules
+                  </CardDescription>
                 </div>
                 <Button>Add Category</Button>
               </div>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Issues</TableHead>
-                    <TableHead></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {categories.map((category) => (
-                    <TableRow key={category.id}>
-                      <TableCell className="font-medium">{category.name}</TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {category.description || "-"}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{category._count.issues}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Button variant="ghost" size="sm">Edit</Button>
-                      </TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead>Issues</TableHead>
+                      <TableHead></TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {categories.map((category) => (
+                      <TableRow key={category.id}>
+                        <TableCell
+                          className="font-medium max-w-[150px] truncate"
+                          title={category.name}
+                        >
+                          {category.name}
+                        </TableCell>
+                        <TableCell
+                          className="text-muted-foreground max-w-[250px] truncate"
+                          title={category.description || ""}
+                        >
+                          {category.description || "-"}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">
+                            {category._count.issues}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="sm">
+                            Edit
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

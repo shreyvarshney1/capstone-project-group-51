@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useAuthStore } from '@/lib/stores/auth-store';
-import { api } from '@/lib/api-client';
-import { API_ENDPOINTS } from '@/lib/constants';
-import { IssueListItem, DashboardAnalytics } from '@/types';
+import { useEffect, useState } from "react";
+import { useAuthStore } from "@/lib/stores/auth-store";
+import { api } from "@/lib/api-client";
+import { API_ENDPOINTS } from "@/lib/constants";
+import { IssueListItem, DashboardAnalytics } from "@/types";
 
 import {
   AlertCircle,
@@ -14,20 +14,21 @@ import {
   Plus,
   Search,
   Filter,
-  MapPin
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { STATUS_CONFIG } from '@/lib/constants';
+  MapPin,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { STATUS_CONFIG } from "@/lib/constants";
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
   const [metrics, setMetrics] = useState<DashboardAnalytics | null>(null);
   const [complaints, setComplaints] = useState<IssueListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     fetchDashboardData();
@@ -36,7 +37,9 @@ export default function DashboardPage() {
   const fetchDashboardData = async () => {
     try {
       // Fetch metrics
-      const metricsResponse = await api.get(API_ENDPOINTS.ANALYTICS.DASHBOARD) as DashboardAnalytics;
+      const metricsResponse = (await api.get(
+        API_ENDPOINTS.ANALYTICS.DASHBOARD,
+      )) as DashboardAnalytics;
       if (metricsResponse) {
         setMetrics(metricsResponse);
       }
@@ -45,23 +48,24 @@ export default function DashboardPage() {
       // API call structure depends on your client. Assuming api.get returns the data payload.
       // If api.get returns { data: ..., pagination: ... }, we need to handle that.
       // Based on route.ts: NextResponse.json({ data: issues, pagination: ... })
-      const complaintsResponse = await api.get(API_ENDPOINTS.COMPLAINTS.LIST, {
+      const complaintsResponse = (await api.get(API_ENDPOINTS.COMPLAINTS.LIST, {
         params: { limit: 10 }, // You might need to change 'limit' to 'pageSize' as per route.ts
-      }) as any;
+      })) as any;
 
       if (complaintsResponse.data) {
         setComplaints(complaintsResponse.data);
       }
     } catch (error) {
-      console.error('Failed to fetch dashboard data:', error);
+      console.error("Failed to fetch dashboard data:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const filteredComplaints = complaints.filter(c =>
-    c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.description.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredComplaints = complaints.filter(
+    (c) =>
+      c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.description.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   if (isLoading) {
@@ -73,7 +77,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="min-h-screen bg-muted/10">
       <div className="container mx-auto px-4 py-8">
         {/* Welcome Header */}
         <motion.div
@@ -81,10 +85,12 @@ export default function DashboardPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Welcome back, {user?.name || 'Citizen'}!
+          <h1 className="text-3xl font-bold text-foreground">
+            Welcome back, {user?.name || "Citizen"}!
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">Here's an overview of your grievances</p>
+          <p className="text-muted-foreground mt-2">
+            Here's an overview of your grievances
+          </p>
         </motion.div>
 
         {/* Stats Cards */}
@@ -93,76 +99,94 @@ export default function DashboardPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6"
           >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Total Complaints</p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
-                  {complaints.length}
-                </p>
-              </div>
-              <div className="bg-blue-100 p-3 rounded-lg">
-                <AlertCircle className="h-6 w-6 text-blue-600" />
-              </div>
-            </div>
+            <Card className="h-full">
+              <CardContent className="flex items-center justify-between py-3">
+                <div>
+                  <p className="text-sm text-muted-foreground font-medium">
+                    Total Complaints
+                  </p>
+                  <p className="text-3xl font-bold text-foreground mt-2">
+                    {complaints.length}
+                  </p>
+                </div>
+                <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-lg">
+                  <AlertCircle className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                </div>
+              </CardContent>
+            </Card>
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6"
           >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Resolved</p>
-                <p className="text-3xl font-bold text-green-600 mt-2">
-                  {complaints.filter(c => c.status === 'RESOLVED').length}
-                </p>
-              </div>
-              <div className="bg-green-100 p-3 rounded-lg">
-                <CheckCircle2 className="h-6 w-6 text-green-600" />
-              </div>
-            </div>
+            <Card className="h-full">
+              <CardContent className="flex items-center justify-between py-3">
+                <div>
+                  <p className="text-sm text-muted-foreground font-medium">
+                    Resolved
+                  </p>
+                  <p className="text-3xl font-bold text-green-600 mt-2">
+                    {complaints.filter((c) => c.status === "RESOLVED").length}
+                  </p>
+                </div>
+                <div className="bg-green-100 dark:bg-green-900/30 p-3 rounded-lg">
+                  <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400" />
+                </div>
+              </CardContent>
+            </Card>
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6"
           >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">In Progress</p>
-                <p className="text-3xl font-bold text-purple-600 mt-2">
-                  {complaints.filter(c => c.status === 'IN_PROGRESS' || c.status === 'ACKNOWLEDGED').length}
-                </p>
-              </div>
-              <div className="bg-purple-100 p-3 rounded-lg">
-                <Clock className="h-6 w-6 text-purple-600" />
-              </div>
-            </div>
+            <Card className="h-full">
+              <CardContent className="flex items-center justify-between py-3">
+                <div>
+                  <p className="text-sm text-muted-foreground font-medium">
+                    In Progress
+                  </p>
+                  <p className="text-3xl font-bold text-purple-600 mt-2">
+                    {
+                      complaints.filter(
+                        (c) =>
+                          c.status === "IN_PROGRESS" ||
+                          c.status === "ACKNOWLEDGED",
+                      ).length
+                    }
+                  </p>
+                </div>
+                <div className="bg-purple-100 dark:bg-purple-900/30 p-3 rounded-lg">
+                  <Clock className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                </div>
+              </CardContent>
+            </Card>
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6"
           >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Pending</p>
-                <p className="text-3xl font-bold text-yellow-600 mt-2">
-                  {complaints.filter(c => c.status === 'SUBMITTED').length}
-                </p>
-              </div>
-              <div className="bg-yellow-100 p-3 rounded-lg">
-                <TrendingUp className="h-6 w-6 text-yellow-600" />
-              </div>
-            </div>
+            <Card className="h-full">
+              <CardContent className="flex items-center justify-between py-3">
+                <div>
+                  <p className="text-sm text-muted-foreground font-medium">
+                    Pending
+                  </p>
+                  <p className="text-3xl font-bold text-yellow-600 mt-2">
+                    {complaints.filter((c) => c.status === "SUBMITTED").length}
+                  </p>
+                </div>
+                <div className="bg-yellow-100 dark:bg-yellow-900/30 p-3 rounded-lg">
+                  <TrendingUp className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+                </div>
+              </CardContent>
+            </Card>
           </motion.div>
         </div>
 
@@ -200,23 +224,25 @@ export default function DashboardPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6"
+          className="bg-card rounded-xl shadow-sm border border-border p-6"
         >
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Your Recent Complaints</h2>
+            <h2 className="text-2xl font-bold text-foreground">
+              Your Recent Complaints
+            </h2>
 
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+              <div className="relative w-full sm:w-auto">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   placeholder="Search complaints..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 w-64"
+                  className="pl-10 w-full sm:w-64"
                 />
               </div>
 
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="w-full sm:w-auto">
                 <Filter className="mr-2 h-4 w-4" />
                 Filter
               </Button>
@@ -226,7 +252,7 @@ export default function DashboardPage() {
           {filteredComplaints.length === 0 ? (
             <div className="text-center py-12">
               <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600 dark:text-gray-400">No complaints found</p>
+              <p className="text-muted-foreground">No complaints found</p>
               <Button className="mt-4" asChild>
                 <Link href="/report">Submit Your First Complaint</Link>
               </Button>
@@ -239,34 +265,50 @@ export default function DashboardPage() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="border border-gray-200 dark:border-gray-800 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer bg-white dark:bg-gray-900/50"
-                  onClick={() => window.location.href = `/issues/${complaint.id}`}
+                  className="border border-border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer bg-card"
+                  onClick={() =>
+                    (window.location.href = `/issues/${complaint.id}`)
+                  }
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold text-gray-900 dark:text-white">{complaint.title}</h3>
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${STATUS_CONFIG[complaint.status.toLowerCase() as keyof typeof STATUS_CONFIG]?.bgColor} ${STATUS_CONFIG[complaint.status.toLowerCase() as keyof typeof STATUS_CONFIG]?.textColor}`}>
-                          {STATUS_CONFIG[complaint.status.toLowerCase() as keyof typeof STATUS_CONFIG]?.label || complaint.status}
+                        <h3 className="font-semibold text-foreground text-pretty pr-4 wrap-break-word">
+                          {complaint.title}
+                        </h3>
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium shrink-0 ${STATUS_CONFIG[complaint.status.toLowerCase() as keyof typeof STATUS_CONFIG]?.bgColor} ${STATUS_CONFIG[complaint.status.toLowerCase() as keyof typeof STATUS_CONFIG]?.textColor}`}
+                        >
+                          {STATUS_CONFIG[
+                            complaint.status.toLowerCase() as keyof typeof STATUS_CONFIG
+                          ]?.label || complaint.status}
                         </span>
                       </div>
 
-                      <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2 mb-3">
+                      <p className="text-muted-foreground text-sm line-clamp-2 md:line-clamp-3 mb-3 wrap-break-word overflow-hidden">
                         {complaint.description}
                       </p>
 
-                      <div className="flex items-center gap-4 text-sm text-gray-500">
-                        <span className="flex items-center gap-1">
-                          <MapPin className="h-4 w-4" />
-                          {complaint.address || 'Unknown Location'}
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1 min-w-0">
+                          <MapPin className="h-4 w-4 shrink-0" />
+                          <span
+                            className="truncate max-w-[200px] text-ellipsis"
+                            title={complaint.address || "Unknown Location"}
+                          >
+                            {complaint.address || "Unknown Location"}
+                          </span>
                         </span>
                         <span>•</span>
                         <span>
-                          {new Date(complaint.createdAt).toLocaleDateString('en-IN', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                          })}
+                          {new Date(complaint.createdAt).toLocaleDateString(
+                            "en-IN",
+                            {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            },
+                          )}
                         </span>
                         {complaint.voteCount > 0 && (
                           <>

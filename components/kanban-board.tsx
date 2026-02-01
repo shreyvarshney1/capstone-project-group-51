@@ -1,66 +1,90 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useSession } from "next-auth/react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { StatusBadge } from "@/components/status-timeline"
-import { 
-  GripVertical, 
-  Clock, 
-  AlertTriangle, 
-  MapPin, 
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { StatusBadge } from "@/components/status-timeline";
+import {
+  GripVertical,
+  Clock,
+  AlertTriangle,
+  MapPin,
   User,
   Calendar,
   ChevronDown,
   ChevronUp,
   Filter,
-  RefreshCw
-} from "lucide-react"
-import { formatDistanceToNow } from "date-fns"
-import Link from "next/link"
+  RefreshCw,
+} from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import Link from "next/link";
 
 interface Issue {
-  id: string
-  title: string
-  description: string
-  status: string
-  priority: string
-  isUrgent: boolean
-  createdAt: string
-  slaDueDate?: string
+  id: string;
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  isUrgent: boolean;
+  createdAt: string;
+  slaDueDate?: string;
   category: {
-    name: string
-  }
+    name: string;
+  };
   reporter: {
-    name: string
-    image?: string
-  }
+    name: string;
+    image?: string;
+  };
   ward?: {
-    name: string
-  }
+    name: string;
+  };
   _count?: {
-    votes: number
-    comments: number
-  }
+    votes: number;
+    comments: number;
+  };
 }
 
 interface KanbanColumn {
-  id: string
-  title: string
-  status: string
-  issues: Issue[]
-  color: string
+  id: string;
+  title: string;
+  status: string;
+  issues: Issue[];
+  color: string;
 }
 
 const DEFAULT_COLUMNS: KanbanColumn[] = [
-  { id: "pending", title: "Pending", status: "PENDING", issues: [], color: "bg-yellow-500" },
-  { id: "assigned", title: "Assigned", status: "ASSIGNED", issues: [], color: "bg-purple-500" },
-  { id: "in_progress", title: "In Progress", status: "IN_PROGRESS", issues: [], color: "bg-blue-500" },
-  { id: "resolved", title: "Resolved", status: "RESOLVED", issues: [], color: "bg-green-500" },
-]
+  {
+    id: "pending",
+    title: "Pending",
+    status: "PENDING",
+    issues: [],
+    color: "bg-yellow-500",
+  },
+  {
+    id: "assigned",
+    title: "Assigned",
+    status: "ASSIGNED",
+    issues: [],
+    color: "bg-purple-500",
+  },
+  {
+    id: "in_progress",
+    title: "In Progress",
+    status: "IN_PROGRESS",
+    issues: [],
+    color: "bg-blue-500",
+  },
+  {
+    id: "resolved",
+    title: "Resolved",
+    status: "RESOLVED",
+    issues: [],
+    color: "bg-green-500",
+  },
+];
 
 const PRIORITY_ORDER: Record<string, number> = {
   CRITICAL: 1,
@@ -68,110 +92,123 @@ const PRIORITY_ORDER: Record<string, number> = {
   MEDIUM: 3,
   LOW: 4,
   VERY_LOW: 5,
-}
+};
 
 const PRIORITY_COLORS: Record<string, string> = {
   CRITICAL: "text-red-600 bg-red-100",
   HIGH: "text-orange-600 bg-orange-100",
   MEDIUM: "text-yellow-600 bg-yellow-100",
   LOW: "text-green-600 bg-green-100",
-  VERY_LOW: "text-gray-600 bg-gray-100",
-}
+  VERY_LOW: "text-muted-foreground bg-muted",
+};
 
 interface KanbanBoardProps {
-  wardId?: string
-  blockId?: string
-  districtId?: string
+  wardId?: string;
+  blockId?: string;
+  districtId?: string;
 }
 
 export function KanbanBoard({ wardId, blockId, districtId }: KanbanBoardProps) {
-  const { data: session } = useSession()
-  const [columns, setColumns] = useState<KanbanColumn[]>(DEFAULT_COLUMNS)
-  const [isLoading, setIsLoading] = useState(true)
-  const [draggedIssue, setDraggedIssue] = useState<Issue | null>(null)
-  const [dragOverColumn, setDragOverColumn] = useState<string | null>(null)
-  const [collapsedColumns, setCollapsedColumns] = useState<Set<string>>(new Set())
+  const { data: session } = useSession();
+  const [columns, setColumns] = useState<KanbanColumn[]>(DEFAULT_COLUMNS);
+  const [isLoading, setIsLoading] = useState(true);
+  const [draggedIssue, setDraggedIssue] = useState<Issue | null>(null);
+  const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
+  const [collapsedColumns, setCollapsedColumns] = useState<Set<string>>(
+    new Set(),
+  );
 
   useEffect(() => {
-    fetchIssues()
-  }, [wardId, blockId, districtId])
+    fetchIssues();
+  }, [wardId, blockId, districtId]);
 
   const fetchIssues = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const params = new URLSearchParams()
-      if (wardId) params.set("wardId", wardId)
-      if (blockId) params.set("blockId", blockId)
-      if (districtId) params.set("districtId", districtId)
-      params.set("pageSize", "100")
+      const params = new URLSearchParams();
+      if (wardId) params.set("wardId", wardId);
+      if (blockId) params.set("blockId", blockId);
+      if (districtId) params.set("districtId", districtId);
+      params.set("pageSize", "100");
 
-      const response = await fetch(`/api/issues?${params}`)
+      const response = await fetch(`/api/issues?${params}`);
       if (response.ok) {
-        const data = await response.json()
-        organizeIssues(data.data)
+        const data = await response.json();
+        organizeIssues(data.data);
       }
     } catch (error) {
-      console.error("Failed to fetch issues:", error)
+      console.error("Failed to fetch issues:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const organizeIssues = (issues: Issue[]) => {
-    const newColumns = DEFAULT_COLUMNS.map(col => ({
+    const newColumns = DEFAULT_COLUMNS.map((col) => ({
       ...col,
       issues: issues
-        .filter(issue => issue.status === col.status)
+        .filter((issue) => issue.status === col.status)
         .sort((a, b) => {
           // Sort by priority first, then by urgency, then by SLA
-          if (a.isUrgent !== b.isUrgent) return a.isUrgent ? -1 : 1
-          const priorityDiff = (PRIORITY_ORDER[a.priority] || 5) - (PRIORITY_ORDER[b.priority] || 5)
-          if (priorityDiff !== 0) return priorityDiff
+          if (a.isUrgent !== b.isUrgent) return a.isUrgent ? -1 : 1;
+          const priorityDiff =
+            (PRIORITY_ORDER[a.priority] || 5) -
+            (PRIORITY_ORDER[b.priority] || 5);
+          if (priorityDiff !== 0) return priorityDiff;
           if (a.slaDueDate && b.slaDueDate) {
-            return new Date(a.slaDueDate).getTime() - new Date(b.slaDueDate).getTime()
+            return (
+              new Date(a.slaDueDate).getTime() -
+              new Date(b.slaDueDate).getTime()
+            );
           }
-          return 0
+          return 0;
         }),
-    }))
-    setColumns(newColumns)
-  }
+    }));
+    setColumns(newColumns);
+  };
 
   const handleDragStart = (issue: Issue) => {
-    setDraggedIssue(issue)
-  }
+    setDraggedIssue(issue);
+  };
 
   const handleDragOver = (e: React.DragEvent, columnId: string) => {
-    e.preventDefault()
-    setDragOverColumn(columnId)
-  }
+    e.preventDefault();
+    setDragOverColumn(columnId);
+  };
 
   const handleDragLeave = () => {
-    setDragOverColumn(null)
-  }
+    setDragOverColumn(null);
+  };
 
   const handleDrop = async (e: React.DragEvent, targetColumn: KanbanColumn) => {
-    e.preventDefault()
-    setDragOverColumn(null)
+    e.preventDefault();
+    setDragOverColumn(null);
 
     if (!draggedIssue || draggedIssue.status === targetColumn.status) {
-      setDraggedIssue(null)
-      return
+      setDraggedIssue(null);
+      return;
     }
 
     // Optimistic update
-    const newColumns = columns.map(col => {
+    const newColumns = columns.map((col) => {
       if (col.status === draggedIssue.status) {
-        return { ...col, issues: col.issues.filter(i => i.id !== draggedIssue.id) }
+        return {
+          ...col,
+          issues: col.issues.filter((i) => i.id !== draggedIssue.id),
+        };
       }
       if (col.status === targetColumn.status) {
-        return { 
-          ...col, 
-          issues: [...col.issues, { ...draggedIssue, status: targetColumn.status }] 
-        }
+        return {
+          ...col,
+          issues: [
+            ...col.issues,
+            { ...draggedIssue, status: targetColumn.status },
+          ],
+        };
       }
-      return col
-    })
-    setColumns(newColumns)
+      return col;
+    });
+    setColumns(newColumns);
 
     // Update on server
     try {
@@ -182,38 +219,40 @@ export function KanbanBoard({ wardId, blockId, districtId }: KanbanBoardProps) {
           action: "updateStatus",
           status: targetColumn.status,
         }),
-      })
+      });
 
       if (!response.ok) {
         // Revert on failure
-        fetchIssues()
+        fetchIssues();
       }
     } catch (error) {
-      console.error("Failed to update issue status:", error)
-      fetchIssues()
+      console.error("Failed to update issue status:", error);
+      fetchIssues();
     }
 
-    setDraggedIssue(null)
-  }
+    setDraggedIssue(null);
+  };
 
   const toggleColumn = (columnId: string) => {
-    const newCollapsed = new Set(collapsedColumns)
+    const newCollapsed = new Set(collapsedColumns);
     if (newCollapsed.has(columnId)) {
-      newCollapsed.delete(columnId)
+      newCollapsed.delete(columnId);
     } else {
-      newCollapsed.add(columnId)
+      newCollapsed.add(columnId);
     }
-    setCollapsedColumns(newCollapsed)
-  }
+    setCollapsedColumns(newCollapsed);
+  };
 
   if (!session) {
     return (
       <Card>
         <CardContent className="p-8 text-center">
-          <p className="text-muted-foreground">Please sign in to view the Kanban board</p>
+          <p className="text-muted-foreground">
+            Please sign in to view the Kanban board
+          </p>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -221,15 +260,22 @@ export function KanbanBoard({ wardId, blockId, districtId }: KanbanBoardProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Issue Kanban Board</h2>
-        <Button variant="outline" size="sm" onClick={fetchIssues} disabled={isLoading}>
-          <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={fetchIssues}
+          disabled={isLoading}
+        >
+          <RefreshCw
+            className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
+          />
           Refresh
         </Button>
       </div>
 
       {/* Kanban Columns */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {columns.map(column => (
+        {columns.map((column) => (
           <div
             key={column.id}
             className={`flex flex-col rounded-lg border bg-muted/30 ${
@@ -274,7 +320,7 @@ export function KanbanBoard({ wardId, blockId, districtId }: KanbanBoardProps) {
                     No issues
                   </div>
                 ) : (
-                  column.issues.map(issue => (
+                  column.issues.map((issue) => (
                     <KanbanCard
                       key={issue.id}
                       issue={issue}
@@ -289,29 +335,29 @@ export function KanbanBoard({ wardId, blockId, districtId }: KanbanBoardProps) {
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 interface KanbanCardProps {
-  issue: Issue
-  onDragStart: () => void
-  isDragging: boolean
+  issue: Issue;
+  onDragStart: () => void;
+  isDragging: boolean;
 }
 
 function KanbanCard({ issue, onDragStart, isDragging }: KanbanCardProps) {
   const getSlaStatus = () => {
-    if (!issue.slaDueDate) return null
+    if (!issue.slaDueDate) return null;
 
-    const now = new Date()
-    const due = new Date(issue.slaDueDate)
-    const hoursRemaining = (due.getTime() - now.getTime()) / (1000 * 60 * 60)
+    const now = new Date();
+    const due = new Date(issue.slaDueDate);
+    const hoursRemaining = (due.getTime() - now.getTime()) / (1000 * 60 * 60);
 
-    if (hoursRemaining < 0) return "breached"
-    if (hoursRemaining < 24) return "warning"
-    return "ok"
-  }
+    if (hoursRemaining < 0) return "breached";
+    if (hoursRemaining < 24) return "warning";
+    return "ok";
+  };
 
-  const slaStatus = getSlaStatus()
+  const slaStatus = getSlaStatus();
 
   return (
     <Card
@@ -325,13 +371,13 @@ function KanbanCard({ issue, onDragStart, isDragging }: KanbanCardProps) {
       <CardContent className="p-3 space-y-2">
         {/* Header */}
         <div className="flex items-start justify-between gap-2">
-          <Link 
+          <Link
             href={`/issues/${issue.id}`}
-            className="text-sm font-medium hover:underline line-clamp-2 flex-1"
+            className="text-sm font-medium hover:underline line-clamp-2 flex-1 text-pretty break-words"
           >
             {issue.title}
           </Link>
-          <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+          <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />
         </div>
 
         {/* Tags */}
@@ -339,8 +385,8 @@ function KanbanCard({ issue, onDragStart, isDragging }: KanbanCardProps) {
           <Badge variant="outline" className="text-xs">
             {issue.category.name}
           </Badge>
-          <Badge 
-            variant="outline" 
+          <Badge
+            variant="outline"
             className={`text-xs ${PRIORITY_COLORS[issue.priority] || ""}`}
           >
             {issue.priority}
@@ -363,7 +409,9 @@ function KanbanCard({ issue, onDragStart, isDragging }: KanbanCardProps) {
           )}
           <span className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
-            {formatDistanceToNow(new Date(issue.createdAt), { addSuffix: true })}
+            {formatDistanceToNow(new Date(issue.createdAt), {
+              addSuffix: true,
+            })}
           </span>
         </div>
 
@@ -381,16 +429,26 @@ function KanbanCard({ issue, onDragStart, isDragging }: KanbanCardProps) {
             </span>
           </div>
           {slaStatus && (
-            <Badge 
-              variant={slaStatus === "breached" ? "destructive" : slaStatus === "warning" ? "secondary" : "outline"}
+            <Badge
+              variant={
+                slaStatus === "breached"
+                  ? "destructive"
+                  : slaStatus === "warning"
+                    ? "secondary"
+                    : "outline"
+              }
               className="text-xs"
             >
               <Clock className="h-3 w-3 mr-1" />
-              {slaStatus === "breached" ? "Overdue" : slaStatus === "warning" ? "Due soon" : "On track"}
+              {slaStatus === "breached"
+                ? "Overdue"
+                : slaStatus === "warning"
+                  ? "Due soon"
+                  : "On track"}
             </Badge>
           )}
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

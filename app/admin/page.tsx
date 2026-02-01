@@ -1,16 +1,15 @@
-import { getServerSession } from "next-auth"
-import { redirect } from "next/navigation"
-import { authOptions } from "@/app/api/auth/[...nextauth]/route"
-import { getIssuesWithCategories } from "@/lib/data"
-import { prisma } from "@/lib/prisma"
-import { AdminDashboard } from "@/components/admin-dashboard"
-
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { getIssuesWithCategories } from "@/lib/data";
+import { prisma } from "@/lib/prisma";
+import { AdminDashboard } from "@/components/admin-dashboard";
 
 export default async function AdminPage() {
-  const session = await getServerSession(authOptions)
+  const session = await getServerSession(authOptions);
 
   if (!session || !session.user || session.user.role !== "ADMIN") {
-    redirect("/")
+    redirect("/");
   }
 
   // Fetch comprehensive admin data
@@ -73,38 +72,41 @@ export default async function AdminPage() {
       by: ["status"],
       _count: true,
     }),
-  ])
+  ]);
 
   // Serialize dates
-  const serializedIssues = issues.map(issue => ({
+  const serializedIssues = issues.map((issue) => ({
     ...issue,
     createdAt: issue.createdAt.toISOString(),
     updatedAt: issue.updatedAt.toISOString(),
     voteCount: issue.votes.length,
-  }))
+  }));
 
-  const serializedUsers = users.map(user => ({
+  const serializedUsers = users.map((user) => ({
     ...user,
     createdAt: user.createdAt.toISOString(),
-  }))
+  }));
 
-  const serializedCategories = categories.map(cat => ({
+  const serializedCategories = categories.map((cat) => ({
     ...cat,
     createdAt: cat.createdAt.toISOString(),
     updatedAt: cat.updatedAt.toISOString(),
-  }))
+  }));
 
   // Calculate stats
-  const statusStats = stats.reduce((acc, curr) => {
-    acc[curr.status] = curr._count
-    return acc
-  }, {} as Record<string, number>)
+  const statusStats = stats.reduce(
+    (acc, curr) => {
+      acc[curr.status] = curr._count;
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto py-10 px-4">
         <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+          <h1 className="text-3xl md:text-4xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
             Admin Dashboard
           </h1>
           <p className="text-muted-foreground">
@@ -119,5 +121,5 @@ export default async function AdminPage() {
         />
       </div>
     </div>
-  )
+  );
 }

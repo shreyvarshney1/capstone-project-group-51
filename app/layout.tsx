@@ -10,12 +10,15 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "CivicConnect - Unified Grievance Management Platform",
-  description: "A unified digital platform for hierarchical civil grievance management and community-driven issue resolution in India",
-  keywords: "grievance, complaints, civic issues, India, government, transparency",
+  description:
+    "A unified digital platform for hierarchical civil grievance management and community-driven issue resolution in India",
+  keywords:
+    "grievance, complaints, civic issues, India, government, transparency",
   authors: [{ name: "VIT Bhopal" }],
   openGraph: {
     title: "CivicConnect - Unified Grievance Management",
-    description: "Empowering citizens with transparent, efficient grievance resolution",
+    description:
+      "Empowering citizens with transparent, efficient grievance resolution",
     type: "website",
   },
 };
@@ -31,7 +34,7 @@ export default function RootLayout({
         <Providers>
           <WebSocketProvider>
             <Navbar />
-            <main className="min-h-screen">
+            <main className="min-h-screen w-full overflow-x-hidden relative">
               {children}
             </main>
             <Toaster
